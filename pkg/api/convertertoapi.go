@@ -5,10 +5,10 @@ package api
 
 import (
 	"github.com/Azure/aks-engine/pkg/api/common"
-	"github.com/Azure/aks-engine/pkg/api/v20160330"
-	"github.com/Azure/aks-engine/pkg/api/v20160930"
-	"github.com/Azure/aks-engine/pkg/api/v20170131"
-	"github.com/Azure/aks-engine/pkg/api/v20170701"
+	v20160330 "github.com/Azure/aks-engine/pkg/api/v20160330"
+	v20160930 "github.com/Azure/aks-engine/pkg/api/v20160930"
+	v20170131 "github.com/Azure/aks-engine/pkg/api/v20170131"
+	v20170701 "github.com/Azure/aks-engine/pkg/api/v20170701"
 	"github.com/Azure/aks-engine/pkg/api/vlabs"
 	"github.com/Azure/aks-engine/pkg/helpers"
 )
@@ -359,6 +359,10 @@ func convertVLabsProperties(vlabs *vlabs.Properties, api *Properties, isUpdate b
 		api.MasterProfile = &MasterProfile{}
 		convertVLabsMasterProfile(vlabs.MasterProfile, api.MasterProfile)
 	}
+	if vlabs.CloudProfile != nil {
+		api.CloudProfile = &CloudProfile{}
+		convertVLabsCloudProfile(vlabs.CloudProfile, api.CloudProfile)
+	}
 	api.AgentPoolProfiles = []*AgentPoolProfile{}
 	for _, p := range vlabs.AgentPoolProfiles {
 		apiProfile := &AgentPoolProfile{}
@@ -609,6 +613,27 @@ func convertVLabsOrchestratorProfile(vp *vlabs.Properties, api *OrchestratorProf
 			isUpdate,
 			false)
 	}
+}
+
+func convertVLabsCloudProfile(vlabscs *vlabs.CloudProfile, api *CloudProfile) {
+	api.Name = vlabscs.Name
+	api.ManagementPortalURL = vlabscs.ManagementPortalURL
+	api.PublishSettingsURL = vlabscs.PublishSettingsURL
+	api.ServiceManagementEndpoint = vlabscs.ServiceManagementEndpoint
+	api.ResourceManagerEndpoint = vlabscs.ResourceManagerEndpoint
+	api.ActiveDirectoryEndpoint = vlabscs.ActiveDirectoryEndpoint
+	api.GalleryEndpoint = vlabscs.GalleryEndpoint
+	api.KeyVaultEndpoint = vlabscs.KeyVaultEndpoint
+	api.GraphEndpoint = vlabscs.GraphEndpoint
+	api.StorageEndpointSuffix = vlabscs.StorageEndpointSuffix
+	api.SQLDatabaseDNSSuffix = vlabscs.SQLDatabaseDNSSuffix
+	api.TrafficManagerDNSSuffix = vlabscs.TrafficManagerDNSSuffix
+	api.KeyVaultDNSSuffix = vlabscs.KeyVaultDNSSuffix
+	api.ServiceBusEndpointSuffix = vlabscs.ServiceBusEndpointSuffix
+	api.ServiceManagementVMDNSSuffix = vlabscs.ServiceManagementVMDNSSuffix
+	api.ResourceManagerVMDNSSuffix = vlabscs.ResourceManagerVMDNSSuffix
+	api.ContainerRegistryDNSSuffix = vlabscs.ContainerRegistryDNSSuffix
+	api.IdentitySystem = vlabscs.IdentitySystem
 }
 
 func convertVLabsDcosConfig(vlabs *vlabs.DcosConfig, api *DcosConfig) {

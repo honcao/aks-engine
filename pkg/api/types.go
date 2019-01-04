@@ -6,6 +6,7 @@ package api
 import (
 	"fmt"
 	"hash/fnv"
+	"log"
 	"math/rand"
 	"net"
 	neturl "net/url"
@@ -13,13 +14,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Azure/aks-engine/pkg/api/agentPoolOnlyApi/v20170831"
-	"github.com/Azure/aks-engine/pkg/api/agentPoolOnlyApi/v20180331"
+	v20170831 "github.com/Azure/aks-engine/pkg/api/agentPoolOnlyApi/v20170831"
+	v20180331 "github.com/Azure/aks-engine/pkg/api/agentPoolOnlyApi/v20180331"
 	"github.com/Azure/aks-engine/pkg/api/common"
-	"github.com/Azure/aks-engine/pkg/api/v20160330"
-	"github.com/Azure/aks-engine/pkg/api/v20160930"
-	"github.com/Azure/aks-engine/pkg/api/v20170131"
-	"github.com/Azure/aks-engine/pkg/api/v20170701"
+	v20160330 "github.com/Azure/aks-engine/pkg/api/v20160330"
+	v20160930 "github.com/Azure/aks-engine/pkg/api/v20160930"
+	v20170131 "github.com/Azure/aks-engine/pkg/api/v20170131"
+	v20170701 "github.com/Azure/aks-engine/pkg/api/v20170701"
 	"github.com/Azure/aks-engine/pkg/api/vlabs"
 	"github.com/Azure/aks-engine/pkg/helpers"
 	"github.com/blang/semver"
@@ -72,6 +73,30 @@ type Properties struct {
 	HostedMasterProfile     *HostedMasterProfile     `json:"hostedMasterProfile,omitempty"`
 	AddonProfiles           map[string]AddonProfile  `json:"addonProfiles,omitempty"`
 	FeatureFlags            *FeatureFlags            `json:"featureFlags,omitempty"`
+	CloudProfile            *CloudProfile            `json:"cloudProfile,omitempty"`
+}
+
+// CloudProfile Represents Azure Enviornment
+type CloudProfile struct {
+	Name                           string `json:"name,omitempty"`
+	ManagementPortalURL            string `json:"managementPortalURL,omitempty"`
+	PublishSettingsURL             string `json:"publishSettingsURL,omitempty"`
+	ServiceManagementEndpoint      string `json:"serviceManagementEndpoint,omitempty"`
+	ResourceManagerEndpoint        string `json:"resourceManagerEndpoint,omitempty"`
+	ActiveDirectoryEndpoint        string `json:"activeDirectoryEndpoint,omitempty"`
+	GalleryEndpoint                string `json:"galleryEndpoint,omitempty"`
+	KeyVaultEndpoint               string `json:"keyVaultEndpoint,omitempty"`
+	GraphEndpoint                  string `json:"graphEndpoint,omitempty"`
+	StorageEndpointSuffix          string `json:"storageEndpointSuffix,omitempty"`
+	SQLDatabaseDNSSuffix           string `json:"sqlDatabaseDNSSuffix,omitempty"`
+	TrafficManagerDNSSuffix        string `json:"trafficManagerDNSSuffix,omitempty"`
+	KeyVaultDNSSuffix              string `json:"keyVaultDNSSuffix,omitempty"`
+	ServiceBusEndpointSuffix       string `json:"serviceBusEndpointSuffix,omitempty"`
+	ServiceManagementVMDNSSuffix   string `json:"serviceManagementVMDNSSuffix,omitempty"`
+	ResourceManagerVMDNSSuffix     string `json:"resourceManagerVMDNSSuffix,omitempty"`
+	ContainerRegistryDNSSuffix     string `json:"containerRegistryDNSSuffix,omitempty"`
+	ResourceManagerRootCertificate string `json:"resourceManagerRootCertificate,omitempty"`
+	IdentitySystem                 string `json:"identitySystem,omitempty"`
 }
 
 // ClusterMetadata represents the metadata of the AKS cluster.
@@ -981,6 +1006,11 @@ func (m *MasterProfile) IsRHEL() bool {
 	return m.Distro == RHEL
 }
 
+// IsAcceleratedNetworkingEnabled returns true if AcceleratedNetworkingEnabled is true
+func (a *AgentPoolProfile) IsAcceleratedNetworkingEnabled() bool {
+	return *a.AcceleratedNetworkingEnabled
+}
+
 // IsCoreOS returns true if the master specified a CoreOS distro
 func (m *MasterProfile) IsCoreOS() bool {
 	return m.Distro == CoreOS
@@ -1393,18 +1423,30 @@ func (f *FeatureFlags) IsFeatureEnabled(feature string) bool {
 //for example: if the target is the public azure, then the default container image url should be k8s.gcr.io/...
 //if the target is azure china, then the default container image should be mirror.azure.cn:5000/google_container/...
 func (cs *ContainerService) GetCloudSpecConfig() AzureEnvironmentSpecConfig {
-	targetEnv := helpers.GetCloudTargetEnv(cs.Location)
+	targetEnv := helpers.GetCloudTargetEnv(cs.Location, cs.Properties.GetCloudProfileName())
 	return AzureCloudSpecEnvMap[targetEnv]
 }
 
 // GetAzureProdFQDN returns the formatted FQDN string for a given apimodel.
 func (cs *ContainerService) GetAzureProdFQDN() string {
-	return FormatAzureProdFQDNByLocation(cs.Properties.MasterProfile.DNSPrefix, cs.Location)
+	return FormatAzureProdFQDNByLocation(cs.Properties.MasterProfile.DNSPrefix, cs.Location, cs.Properties.GetCloudProfileName())
+}
+
+// GetCloudProfileName returns the cloud name
+func (p *Properties) GetCloudProfileName() string {
+	var cloudProfileName string
+	if p.CloudProfile != nil {
+		cloudProfileName = p.CloudProfile.Name
+		if len(cloudProfileName) == 0 {
+			log.Fatalf("CloudProfile is present but no name associated with it.")
+		}
+	}
+	return cloudProfileName
 }
 
 // FormatAzureProdFQDNByLocation constructs an Azure prod fqdn
-func FormatAzureProdFQDNByLocation(fqdnPrefix string, location string) string {
-	targetEnv := helpers.GetCloudTargetEnv(location)
+func FormatAzureProdFQDNByLocation(fqdnPrefix string, location string, cloudName string) string {
+	targetEnv := helpers.GetCloudTargetEnv(location, cloudName)
 	FQDNFormat := AzureCloudSpecEnvMap[targetEnv].EndpointConfig.ResourceManagerVMDNSSuffix
 	return fmt.Sprintf("%s.%s."+FQDNFormat, fqdnPrefix, location)
 }

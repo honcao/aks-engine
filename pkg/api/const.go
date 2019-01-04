@@ -398,4 +398,14 @@ const (
 	AzureChinaCloud        = "AzureChinaCloud"
 	azureGermanCloud       = "AzureGermanCloud"
 	azureUSGovernmentCloud = "AzureUSGovernmentCloud"
+	// AzureStackCloud is a const string reference identifier for Azure Stack cloud
+	AzureStackCloud = "AzureStackCloud"
+	// AzureADIdentitySystem is a const string reference identifier AzureAD Identity System
+	AzureADIdentitySystem = "AzureAD"
+	// AdfsIdentitySystem is a const string reference identifier for ADFS Identity System
+	AdfsIdentitySystem = "ADFS"
+	// AuthMethodClientSecret is a const string reference to use client seret as auth method
+	AuthMethodClientSecret = "client_secret"
+	// AuthMethodClientCertificate is a const string reference to use client certificate as auth method
+	AuthMethodClientCertificate = "client_Certificate"
 )

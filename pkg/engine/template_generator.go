@@ -205,6 +205,30 @@ func (t *TemplateGenerator) getMasterCustomData(cs *api.ContainerService, textFi
 // getTemplateFuncMap returns all functions used in template generation
 func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) template.FuncMap {
 	return template.FuncMap{
+		"IsAzureStackCloud": func() bool {
+			var cloudProfileName string
+			if cs.Properties.CloudProfile != nil {
+				cloudProfileName = cs.Properties.CloudProfile.Name
+			}
+			return strings.EqualFold(cloudProfileName, api.AzureStackCloud)
+		},
+		"IsMultipleMasters": func() bool {
+			return cs.Properties.MasterProfile.Count > 1
+		},
+		"GetIdentitySystem": func() string {
+			if cs.Properties.CloudProfile != nil {
+				if strings.EqualFold(cs.Properties.CloudProfile.IdentitySystem, api.AdfsIdentitySystem) {
+					return api.AdfsIdentitySystem
+				}
+			}
+			return api.AzureADIdentitySystem
+		},
+		"GetAuthMethod": func() string {
+			if cs.Properties.ServicePrincipalProfile.KeyvaultSecretRef != nil {
+				return api.AuthMethodClientCertificate
+			}
+			return api.AuthMethodClientSecret
+		},
 		"IsMasterVirtualMachineScaleSets": func() bool {
 			return cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.IsVirtualMachineScaleSets()
 		},

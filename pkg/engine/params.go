@@ -37,8 +37,29 @@ func getParameters(cs *api.ContainerService, generatorCode string, acsengineVers
 		}
 	}
 
+	if properties.CloudProfile != nil {
+		addValue(parametersMap, "cloudprofileName", properties.CloudProfile.Name)
+		addValue(parametersMap, "cloudprofileManagementPortalURL", properties.CloudProfile.ManagementPortalURL)
+		addValue(parametersMap, "cloudprofilePublishSettingsURL", properties.CloudProfile.PublishSettingsURL)
+		addValue(parametersMap, "cloudprofileServiceManagementEndpoint", properties.CloudProfile.ServiceManagementEndpoint)
+		addValue(parametersMap, "cloudprofileResourceManagerEndpoint", properties.CloudProfile.ResourceManagerEndpoint)
+		addValue(parametersMap, "cloudprofileActiveDirectoryEndpoint", properties.CloudProfile.ActiveDirectoryEndpoint)
+		addValue(parametersMap, "cloudprofileGalleryEndpoint", properties.CloudProfile.GalleryEndpoint)
+		addValue(parametersMap, "cloudprofileKeyVaultEndpoint", properties.CloudProfile.KeyVaultEndpoint)
+		addValue(parametersMap, "cloudprofileGraphEndpoint", properties.CloudProfile.GraphEndpoint)
+		addValue(parametersMap, "cloudprofileStorageEndpointSuffix", properties.CloudProfile.StorageEndpointSuffix)
+		addValue(parametersMap, "cloudprofileSQLDatabaseDNSSuffix", properties.CloudProfile.SQLDatabaseDNSSuffix)
+		addValue(parametersMap, "cloudprofileTrafficManagerDNSSuffix", properties.CloudProfile.TrafficManagerDNSSuffix)
+		addValue(parametersMap, "cloudprofileKeyVaultDNSSuffix", properties.CloudProfile.KeyVaultDNSSuffix)
+		addValue(parametersMap, "cloudprofileServiceBusEndpointSuffix", properties.CloudProfile.ServiceBusEndpointSuffix)
+		addValue(parametersMap, "cloudprofileServiceManagementVMDNSSuffix", properties.CloudProfile.ServiceManagementVMDNSSuffix)
+		addValue(parametersMap, "cloudprofileResourceManagerVMDNSSuffix", properties.CloudProfile.ResourceManagerVMDNSSuffix)
+		addValue(parametersMap, "cloudprofileContainerRegistryDNSSuffix", properties.CloudProfile.ContainerRegistryDNSSuffix)
+		addValue(parametersMap, "cloudprofileIdentitySystem", properties.CloudProfile.IdentitySystem)
+	}
+
 	addValue(parametersMap, "fqdnEndpointSuffix", cloudSpecConfig.EndpointConfig.ResourceManagerVMDNSSuffix)
-	addValue(parametersMap, "targetEnvironment", helpers.GetCloudTargetEnv(cs.Location))
+	addValue(parametersMap, "targetEnvironment", helpers.GetCloudTargetEnv(cs.Location, cs.Properties.GetCloudProfileName()))
 	addValue(parametersMap, "linuxAdminUsername", properties.LinuxProfile.AdminUsername)
 	if properties.LinuxProfile.CustomSearchDomain != nil {
 		addValue(parametersMap, "searchDomainName", properties.LinuxProfile.CustomSearchDomain.Name)

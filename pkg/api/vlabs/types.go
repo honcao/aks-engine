@@ -46,6 +46,29 @@ type Properties struct {
 	CertificateProfile      *CertificateProfile      `json:"certificateProfile,omitempty"`
 	AADProfile              *AADProfile              `json:"aadProfile,omitempty"`
 	FeatureFlags            *FeatureFlags            `json:"featureFlags,omitempty"`
+	CloudProfile            *CloudProfile            `json:"cloudProfile,omitempty"`
+}
+
+// CloudProfile Represents Azure Enviornment
+type CloudProfile struct {
+	Name                         string `json:"name,omitempty"`
+	ManagementPortalURL          string `json:"managementPortalURL,omitempty"`
+	PublishSettingsURL           string `json:"publishSettingsURL,omitempty"`
+	ServiceManagementEndpoint    string `json:"serviceManagementEndpoint,omitempty"`
+	ResourceManagerEndpoint      string `json:"resourceManagerEndpoint,omitempty"`
+	ActiveDirectoryEndpoint      string `json:"activeDirectoryEndpoint,omitempty"`
+	GalleryEndpoint              string `json:"galleryEndpoint,omitempty"`
+	KeyVaultEndpoint             string `json:"keyVaultEndpoint,omitempty"`
+	GraphEndpoint                string `json:"graphEndpoint,omitempty"`
+	StorageEndpointSuffix        string `json:"storageEndpointSuffix,omitempty"`
+	SQLDatabaseDNSSuffix         string `json:"sqlDatabaseDNSSuffix,omitempty"`
+	TrafficManagerDNSSuffix      string `json:"trafficManagerDNSSuffix,omitempty"`
+	KeyVaultDNSSuffix            string `json:"keyVaultDNSSuffix,omitempty"`
+	ServiceBusEndpointSuffix     string `json:"serviceBusEndpointSuffix,omitempty"`
+	ServiceManagementVMDNSSuffix string `json:"serviceManagementVMDNSSuffix,omitempty"`
+	ResourceManagerVMDNSSuffix   string `json:"resourceManagerVMDNSSuffix,omitempty"`
+	ContainerRegistryDNSSuffix   string `json:"containerRegistryDNSSuffix,omitempty"`
+	IdentitySystem               string `json:"identitySystem,omitempty"`
 }
 
 // FeatureFlags defines feature-flag restricted functionality
@@ -544,6 +567,11 @@ func (m *MasterProfile) IsStorageAccount() bool {
 // IsRHEL returns true if the master specified a RHEL distro
 func (m *MasterProfile) IsRHEL() bool {
 	return m.Distro == RHEL
+}
+
+// IsAcceleratedNetworkingEnabled returns true if AcceleratedNetworkingEnabled is true
+func (a *AgentPoolProfile) IsAcceleratedNetworkingEnabled() bool {
+	return *a.AcceleratedNetworkingEnabled
 }
 
 // IsCoreOS returns true if the master specified a CoreOS distro

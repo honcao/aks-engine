@@ -70,6 +70,8 @@ else
     echo "Golden image; skipping dependencies installation"
 fi
 
+retryfunction_if_failure 20 30 ensureCertificates
+
 installContainerRuntime
 installNetworkPlugin
 installContainerd

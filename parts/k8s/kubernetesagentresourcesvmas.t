@@ -1,5 +1,9 @@
     {
+{{if .IsAcceleratedNetworkingEnabled}}
       "apiVersion": "[variables('apiVersionNetwork')]",
+{{else}}
+      "apiVersion": "[variables('apiVersionDefault')]",
+{{end}}
       "copy": {
         "count": "[sub(variables('{{.Name}}Count'), variables('{{.Name}}Offset'))]",
         "name": "loop"
@@ -46,8 +50,10 @@
           {{end}}
         ]
 {{if not IsAzureCNI}}
+        {{if not IsAzureStackCloud}}
         ,
         "enableIPForwarding": true
+        {{end}}
 {{end}}
       },
       "type": "Microsoft.Network/networkInterfaces"
@@ -59,6 +65,9 @@
       "apiVersion": "[variables('apiVersionCompute')]",
       "properties":
         {
+            {{if not IsAzureStackCloud}}
+            "managed" : "true",
+            {{end}}
             "platformFaultDomainCount": 2,
             "platformUpdateDomainCount": 3
         },

@@ -3,7 +3,9 @@
 
 package api
 
-import "fmt"
+import (
+	"fmt"
+)
 
 //AzureEnvironmentSpecConfig is the overall configuration differences in different cloud environments.
 type AzureEnvironmentSpecConfig struct {
@@ -254,9 +256,34 @@ var (
 		},
 	}
 
+	//AzureStackCloudSpec is the default configurations for global azure.
+	AzureStackCloudSpec = AzureEnvironmentSpecConfig{
+		CloudName: AzureStackCloud,
+		//DockerSpecConfig specify the docker engine download repo
+		DockerSpecConfig: DefaultDockerSpecConfig,
+		//KubernetesSpecConfig is the default kubernetes container image url.
+		KubernetesSpecConfig: DefaultKubernetesSpecConfig,
+		DCOSSpecConfig:       DefaultDCOSSpecConfig,
+
+		EndpointConfig: AzureEndpointConfig{
+			ResourceManagerVMDNSSuffix: "",
+		},
+
+		OSImageConfig: map[Distro]AzureOSImageConfig{
+			Ubuntu: {
+				ImageOffer:     "UbuntuServer",
+				ImageSku:       "16.04-LTS",
+				ImagePublisher: "Canonical",
+				ImageVersion:   "latest",
+			},
+			RHEL: DefaultRHELOSImageConfig,
+		},
+	}
+
 	// AzureCloudSpecEnvMap is the environment configuration map for all the Azure cloud environments.
 	AzureCloudSpecEnvMap = map[string]AzureEnvironmentSpecConfig{
 		AzureChinaCloud:        AzureChinaCloudSpec,
+		AzureStackCloud:        AzureStackCloudSpec,
 		azureGermanCloud:       AzureGermanCloudSpec,
 		azureUSGovernmentCloud: AzureUSGovernmentCloud,
 		AzurePublicCloud:       AzureCloudSpec,

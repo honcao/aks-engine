@@ -22,6 +22,9 @@ spec:
         - name: msi
           mountPath: /var/lib/waagent/ManagedIdentity-Settings
           readOnly: true
+        - name: "ssl"
+          mountPath: /etc/ssl/certs
+          readOnly: true
         - name: sock
           mountPath: /opt
         - name: auditlog
@@ -42,3 +45,6 @@ spec:
     - name: auditlog
       hostPath:
         path: /var/log/kubeaudit
+    - name: ssl
+      hostPath:
+        path: /etc/ssl/certs

@@ -69,7 +69,7 @@
               "name": "[variables('{{.Name}}VMNamePrefix')]",
               "properties": {
                 "primary": true,
-                "enableAcceleratedNetworking" : {{.AcceleratedNetworkingEnabled}},
+                "enableAcceleratedNetworking" : {{.IsAcceleratedNetworkingEnabled}},
                 {{if .IsCustomVNET}}
                 "networkSecurityGroup": {
                   "id": "[variables('nsgID')]"
@@ -99,7 +99,9 @@
                 }
 {{end}}
                 {{if not IsAzureCNI}}
+                {{if not IsAzureStackCloud}}
                 ,"enableIPForwarding": true
+                {{end}}
                 {{end}}
               }
             }

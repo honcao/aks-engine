@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"fmt"
+	"log"
 	"net"
 	"sort"
 	"strconv"
@@ -22,9 +23,27 @@ import (
 	"github.com/pkg/errors"
 )
 
+// setAzureStackCloudDefaults set the default for AzureStackCloudSpec
+func setAzureStackCloudDefaults(a *Properties) {
+
+	if a.CloudProfile != nil {
+		var cloudprofileResourceManagerVMDNSSuffix = a.CloudProfile.ResourceManagerVMDNSSuffix
+		if cloudprofileResourceManagerVMDNSSuffix == "" {
+			log.Fatalf("CloudProfile type %s has empty resourceManagerVMDNSSuffix specified", a.CloudProfile.Name)
+		}
+		AzureStackCloudSpec.EndpointConfig.ResourceManagerVMDNSSuffix = a.CloudProfile.ResourceManagerVMDNSSuffix
+		AzureCloudSpecEnvMap["AzureStackCloud"] = AzureStackCloudSpec
+		if len(a.CloudProfile.IdentitySystem) == 0 {
+			a.CloudProfile.IdentitySystem = AzureADIdentitySystem
+		}
+	}
+}
+
 // SetPropertiesDefaults for the container Properties, returns true if certs are generated
 func (cs *ContainerService) SetPropertiesDefaults(isUpgrade, isScale bool) (bool, error) {
 	properties := cs.Properties
+
+	setAzureStackCloudDefaults(properties)
 
 	cs.setOrchestratorDefaults(isUpgrade || isScale)
 
@@ -514,7 +533,7 @@ func (p *Properties) setDefaultCerts() (bool, []net.IP, error) {
 
 	var azureProdFQDNs []string
 	for _, location := range helpers.GetAzureLocations() {
-		azureProdFQDNs = append(azureProdFQDNs, FormatAzureProdFQDNByLocation(p.MasterProfile.DNSPrefix, location))
+		azureProdFQDNs = append(azureProdFQDNs, FormatAzureProdFQDNByLocation(p.MasterProfile.DNSPrefix, location, p.GetCloudProfileName()))
 	}
 
 	masterExtraFQDNs := append(azureProdFQDNs, p.MasterProfile.SubjectAltNames...)

@@ -190,9 +190,12 @@ func CreateSaveSSH(username, outputDirectory string, s *i18n.Translator) (privat
 // GetCloudTargetEnv determines and returns whether the region is a sovereign cloud which
 // have their own data compliance regulations (China/Germany/USGov) or standard
 //  Azure public cloud
-func GetCloudTargetEnv(location string) string {
+func GetCloudTargetEnv(location string, cloudProfileName string) string {
 	loc := strings.ToLower(strings.Join(strings.Fields(location), ""))
 	switch {
+	case len(cloudProfileName) > 0 && strings.EqualFold(cloudProfileName, "AzureStackCloud"):
+		// Azure Stack does not have well defined regions. The customer provide the region while deploying the stamp.
+		return "AzureStackCloud"
 	case loc == "chinaeast" || loc == "chinanorth" || loc == "chinaeast2" || loc == "chinanorth2":
 		return "AzureChinaCloud"
 	case loc == "germanynortheast" || loc == "germanycentral":

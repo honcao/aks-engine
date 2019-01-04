@@ -10,11 +10,11 @@ import (
 
 	"github.com/blang/semver"
 
-	"github.com/Azure/aks-engine/pkg/api/v20160330"
-	"github.com/Azure/aks-engine/pkg/api/v20160930"
-	"github.com/Azure/aks-engine/pkg/api/v20170131"
-	"github.com/Azure/aks-engine/pkg/api/v20170701"
-	"github.com/Azure/aks-engine/pkg/api/v20170930"
+	v20160330 "github.com/Azure/aks-engine/pkg/api/v20160330"
+	v20160930 "github.com/Azure/aks-engine/pkg/api/v20160930"
+	v20170131 "github.com/Azure/aks-engine/pkg/api/v20170131"
+	v20170701 "github.com/Azure/aks-engine/pkg/api/v20170701"
+	v20170930 "github.com/Azure/aks-engine/pkg/api/v20170930"
 	"github.com/Azure/aks-engine/pkg/api/vlabs"
 )
 
@@ -459,6 +459,10 @@ func convertPropertiesToVLabs(api *Properties, vlabsProps *vlabs.Properties) {
 		convertExtensionProfileToVLabs(extensionProfile, vlabsExtensionProfile)
 		vlabsProps.ExtensionProfiles = append(vlabsProps.ExtensionProfiles, vlabsExtensionProfile)
 	}
+	if api.CloudProfile != nil {
+		vlabsProps.CloudProfile = &vlabs.CloudProfile{}
+		convertCloudProfileToVLabs(api.CloudProfile, vlabsProps.CloudProfile)
+	}
 	if api.WindowsProfile != nil {
 		vlabsProps.WindowsProfile = &vlabs.WindowsProfile{}
 		convertWindowsProfileToVLabs(api.WindowsProfile, vlabsProps.WindowsProfile)
@@ -690,6 +694,27 @@ func convertDcosConfigToVLabs(api *DcosConfig, vl *vlabs.DcosConfig) {
 			Subnet:       api.BootstrapProfile.Subnet,
 		}
 	}
+}
+
+func convertCloudProfileToVLabs(api *CloudProfile, vlabs *vlabs.CloudProfile) {
+	vlabs.Name = api.Name
+	vlabs.ManagementPortalURL = api.ManagementPortalURL
+	vlabs.PublishSettingsURL = api.PublishSettingsURL
+	vlabs.ServiceManagementEndpoint = api.ServiceManagementEndpoint
+	vlabs.ResourceManagerEndpoint = api.ResourceManagerEndpoint
+	vlabs.ActiveDirectoryEndpoint = api.ActiveDirectoryEndpoint
+	vlabs.GalleryEndpoint = api.GalleryEndpoint
+	vlabs.KeyVaultEndpoint = api.KeyVaultEndpoint
+	vlabs.GraphEndpoint = api.GraphEndpoint
+	vlabs.StorageEndpointSuffix = api.StorageEndpointSuffix
+	vlabs.SQLDatabaseDNSSuffix = api.SQLDatabaseDNSSuffix
+	vlabs.TrafficManagerDNSSuffix = api.TrafficManagerDNSSuffix
+	vlabs.KeyVaultDNSSuffix = api.KeyVaultDNSSuffix
+	vlabs.ServiceBusEndpointSuffix = api.ServiceBusEndpointSuffix
+	vlabs.ServiceManagementVMDNSSuffix = api.ServiceManagementVMDNSSuffix
+	vlabs.ResourceManagerVMDNSSuffix = api.ResourceManagerVMDNSSuffix
+	vlabs.ContainerRegistryDNSSuffix = api.ContainerRegistryDNSSuffix
+	vlabs.IdentitySystem = api.IdentitySystem
 }
 
 func convertKubernetesConfigToVLabs(api *KubernetesConfig, vlabs *vlabs.KubernetesConfig) {

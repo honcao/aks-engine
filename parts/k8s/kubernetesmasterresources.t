@@ -43,6 +43,9 @@
       "name": "[variables('masterAvailabilitySet')]",
       "properties":
       {
+        {{if not IsAzureStackCloud}}
+        "managed" : "true",
+        {{end}}
         "platformFaultDomainCount": 2,
         "platformUpdateDomainCount": 3
       },
@@ -166,6 +169,36 @@
               "sourcePortRange": "*"
             }
           }
+        {{if IsAzureStackCloud}}
+		      {
+            "name": "allow_portany_inbound",
+            "properties": {
+              "access": "Allow",
+              "description": "Allow traffic to specific addresses.",
+              "destinationAddressPrefix": "10.0.0.0/8",
+              "destinationPortRange": "*",
+              "direction": "Inbound",
+              "priority": 4095,
+              "protocol": "*",
+              "sourceAddressPrefix": "10.0.0.0/8",
+              "sourcePortRange": "*"
+            }
+          },
+          {
+            "name": "allow_portany_outbound",
+            "properties": {
+              "access": "Allow",
+              "description": "Allow traffic to specific addresses.",
+              "destinationAddressPrefix": "10.0.0.0/8",
+              "destinationPortRange": "*",
+              "direction": "Outbound",
+              "priority": 4095,
+              "protocol": "*",
+              "sourceAddressPrefix": "10.0.0.0/8",
+              "sourcePortRange": "*"
+            }
+          },
+        {{end}}
         {{if IsFeatureEnabled "BlockOutboundInternet"}}
           ,{
             "name": "allow_vnet",
@@ -376,8 +409,10 @@
 {{end}}
         ]
 {{if not IsAzureCNI}}
+    {{if not IsAzureStackCloud}}
         ,
         "enableIPForwarding": true
+    {{end}}
 {{end}}
 {{if HasCustomNodesDNS}}
  ,"dnsSettings": {
@@ -452,8 +487,10 @@
   {{end}}
           ]
   {{if not IsAzureCNI}}
+      {{if not IsAzureStackCloud}}
           ,
           "enableIPForwarding": true
+      {{end}}
   {{end}}
   {{if HasCustomNodesDNS}}
    ,"dnsSettings": {
@@ -580,7 +617,11 @@
           "dnsSettings": {
             "domainNameLabel": "[variables('masterFqdnPrefix')]"
           },
-          "publicIpAllocationMethod": "Dynamic"
+          {{if IsAzureStackCloud}}
+          "publicIPAllocationMethod": "Static"
+          {{else}}
+          "publicIPAllocationMethod": "Dynamic"
+          {{end}}
       }
     },
     {
