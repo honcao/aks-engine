@@ -82,7 +82,7 @@ var AllKubernetesSupportedVersions = map[string]bool{
 	"1.11.0":         false,
 	"1.11.1":         false,
 	"1.11.2":         false,
-	"1.11.3":         false,
+	"1.11.3":         true,
 	"1.11.4":         false,
 	"1.11.5":         true,
 	"1.11.6":         true,
