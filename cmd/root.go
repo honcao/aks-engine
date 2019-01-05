@@ -5,9 +5,12 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/Azure/aks-engine/pkg/api"
 	"github.com/Azure/aks-engine/pkg/api/vlabs"
@@ -237,4 +240,47 @@ func getCompletionCmd(root *cobra.Command) *cobra.Command {
 		},
 	}
 	return completionCmd
+}
+
+func writeCloudProfile(cs *api.ContainerService) error {
+
+	file, err := ioutil.TempFile("", "azurestackcloud.json")
+	defer file.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Infoln(fmt.Sprintf("Writing cloud profile to: %s", file.Name()))
+
+	// Build content for the file
+	content := `{
+	"name": "` + cs.Properties.CloudProfile.Name + `",
+	"managementPortalURL": "` + cs.Properties.CloudProfile.ManagementPortalURL + `",
+	"publishSettingsURL": "` + cs.Properties.CloudProfile.PublishSettingsURL + `",
+	"serviceManagementEndpoint": "` + cs.Properties.CloudProfile.ServiceManagementEndpoint + `",
+	"resourceManagerEndpoint": "` + cs.Properties.CloudProfile.ResourceManagerEndpoint + `",
+	"activeDirectoryEndpoint": "` + cs.Properties.CloudProfile.ActiveDirectoryEndpoint + `",
+	"galleryEndpoint": "` + cs.Properties.CloudProfile.GalleryEndpoint + `",
+	"keyVaultEndpoint": "` + cs.Properties.CloudProfile.KeyVaultEndpoint + `",
+	"graphEndpoint": "` + cs.Properties.CloudProfile.GraphEndpoint + `",
+	"storageEndpointSuffix": "` + cs.Properties.CloudProfile.StorageEndpointSuffix + `",
+	"sQLDatabaseDNSSuffix": "` + cs.Properties.CloudProfile.SQLDatabaseDNSSuffix + `",
+	"trafficManagerDNSSuffix": "` + cs.Properties.CloudProfile.TrafficManagerDNSSuffix + `",
+	"keyVaultDNSSuffix": "` + cs.Properties.CloudProfile.KeyVaultDNSSuffix + `",
+	"serviceBusEndpointSuffix": "` + cs.Properties.CloudProfile.ServiceBusEndpointSuffix + `",
+	"serviceManagementVMDNSSuffix": "` + cs.Properties.CloudProfile.ServiceManagementVMDNSSuffix + `",
+	"resourceManagerVMDNSSuffix": "` + cs.Properties.CloudProfile.ResourceManagerVMDNSSuffix + `",
+	"containerRegistryDNSSuffix": "` + cs.Properties.CloudProfile.ContainerRegistryDNSSuffix + `"
+    }`
+
+	if _, err = file.Write([]byte(content)); err != nil {
+		fmt.Printf("Error [Write %s] : %v\n", file.Name(), err)
+	}
+
+	os.Setenv("AZURE_ENVIRONMENT_FILEPATH", file.Name())
+
+	return nil
+}
+
+func isAzureStackCloud(name string) bool {
+	return strings.EqualFold(name, api.AzureStackCloud)
 }

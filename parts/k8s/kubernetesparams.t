@@ -667,7 +667,7 @@
         "description": "cloudprofileContainerRegistryDNSSuffix"
       },
       "type": "string"
-    }
+    },
     "cloudprofileIdentitySystem": {
       "metadata": {
         "description": "cloudprofileIdentitySystem"

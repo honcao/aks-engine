@@ -138,7 +138,7 @@
         }
       }
     {{if IsAzureStackCloud}}
-      {
+      ,{
         "name": "allow_portany_inbound",
         "properties": {
           "access": "Allow",
@@ -165,7 +165,7 @@
           "sourceAddressPrefix": "10.0.0.0/8",
           "sourcePortRange": "*"
         }
-      },
+      }
     {{end}}
     {{if IsFeatureEnabled "BlockOutboundInternet"}}
       ,{

@@ -160,24 +160,24 @@ write_files:
   owner: "root"
   content: |
     {
-      "name": "{{WrapAsVariable "cloudprofileName"}}",
-      "managementPortalURL": "{{WrapAsVariable "cloudprofileManagementPortalURL"}}",
-      "publishSettingsURL": "{{WrapAsVariable "cloudprofilePublishSettingsURL"}}",
-      "serviceManagementEndpoint": "{{WrapAsVariable "cloudprofileServiceManagementEndpoint"}}",
-      "resourceManagerEndpoint": "{{WrapAsVariable "cloudprofileResourceManagerEndpoint"}}",
-      "activeDirectoryEndpoint": "{{WrapAsVariable "cloudprofileActiveDirectoryEndpoint"}}",
-      "galleryEndpoint": "{{WrapAsVariable "cloudprofileGalleryEndpoint"}}",
-      "keyVaultEndpoint": "{{WrapAsVariable "cloudprofileKeyVaultEndpoint"}}",
-      "graphEndpoint": "{{WrapAsVariable "cloudprofileGraphEndpoint"}}",
-      "storageEndpointSuffix": "{{WrapAsVariable "cloudprofileStorageEndpointSuffix"}}",
-      "sQLDatabaseDNSSuffix": "{{WrapAsVariable "cloudprofileSQLDatabaseDNSSuffix"}}",
-      "trafficManagerDNSSuffix": "{{WrapAsVariable "cloudprofileTrafficManagerDNSSuffix"}}",
-      "keyVaultDNSSuffix": "{{WrapAsVariable "cloudprofileKeyVaultDNSSuffix"}}",
-      "serviceBusEndpointSuffix": "{{WrapAsVariable "cloudprofileServiceBusEndpointSuffix"}}",
-      "serviceManagementVMDNSSuffix": "{{WrapAsVariable "cloudprofileServiceManagementVMDNSSuffix"}}",
-      "resourceManagerVMDNSSuffix": "{{WrapAsVariable "cloudprofileResourceManagerVMDNSSuffix"}}",
-      "containerRegistryDNSSuffix": "{{WrapAsVariable "cloudprofileContainerRegistryDNSSuffix"}}",
-      "identitySystem": "{{WrapAsVariable "cloudprofileIdentitySystem"}}"
+      "name": "{{WrapAsParameter "cloudprofileName"}}",
+      "managementPortalURL": "{{WrapAsParameter "cloudprofileManagementPortalURL"}}",
+      "publishSettingsURL": "{{WrapAsParameter "cloudprofilePublishSettingsURL"}}",
+      "serviceManagementEndpoint": "{{WrapAsParameter "cloudprofileServiceManagementEndpoint"}}",
+      "resourceManagerEndpoint": "{{WrapAsParameter "cloudprofileResourceManagerEndpoint"}}",
+      "activeDirectoryEndpoint": "{{WrapAsParameter "cloudprofileActiveDirectoryEndpoint"}}",
+      "galleryEndpoint": "{{WrapAsParameter "cloudprofileGalleryEndpoint"}}",
+      "keyVaultEndpoint": "{{WrapAsParameter "cloudprofileKeyVaultEndpoint"}}",
+      "graphEndpoint": "{{WrapAsParameter "cloudprofileGraphEndpoint"}}",
+      "storageEndpointSuffix": "{{WrapAsParameter "cloudprofileStorageEndpointSuffix"}}",
+      "sQLDatabaseDNSSuffix": "{{WrapAsParameter "cloudprofileSQLDatabaseDNSSuffix"}}",
+      "trafficManagerDNSSuffix": "{{WrapAsParameter "cloudprofileTrafficManagerDNSSuffix"}}",
+      "keyVaultDNSSuffix": "{{WrapAsParameter "cloudprofileKeyVaultDNSSuffix"}}",
+      "serviceBusEndpointSuffix": "{{WrapAsParameter "cloudprofileServiceBusEndpointSuffix"}}",
+      "serviceManagementVMDNSSuffix": "{{WrapAsParameter "cloudprofileServiceManagementVMDNSSuffix"}}",
+      "resourceManagerVMDNSSuffix": "{{WrapAsParameter "cloudprofileResourceManagerVMDNSSuffix"}}",
+      "containerRegistryDNSSuffix": "{{WrapAsParameter "cloudprofileContainerRegistryDNSSuffix"}}",
+      "identitySystem": "{{WrapAsParameter "cloudprofileIdentitySystem"}}"
     }
 {{end}}
 

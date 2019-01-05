@@ -85,6 +85,7 @@
     "masterOffset": "[parameters('masterOffset')]",
     {{ end }}
 {{end}}
+{{if not IsAzureStackCloud}}
     "apiVersionCompute": "2018-06-01",
     "apiVersionStorage": "2018-07-01",
     "apiVersionKeyVault": "2018-02-14",
@@ -92,6 +93,15 @@
     "apiVersionManagedIdentity": "2015-08-31-preview",
     "apiVersionAuthorizationUser": "2018-09-01-preview",
     "apiVersionAuthorizationSystem": "2018-01-01-preview",
+{{ else }}
+    "apiVersionCompute": "2017-03-30",
+    "apiVersionStorage": "2017-10-01",
+    "apiVersionKeyVault": "2016-10-01",
+    "apiVersionNetwork": "2017-10-01",
+    "apiVersionManagedIdentity": "2015-08-31-preview",
+    "apiVersionAuthorizationUser": "2015-07-01",
+    "apiVersionAuthorizationSystem": "2015-07-01",
+{{ end }}
     "locations": [
          "[resourceGroup().location]",
          "[parameters('location')]"
@@ -339,24 +349,4 @@
      ,"clusterKeyVaultName": "[take(concat('kv', tolower(uniqueString(concat(variables('masterFqdnPrefix'),variables('location'),parameters('nameSuffix'))))), 22)]"
 {{else}}
     ,"clusterKeyVaultName": ""
-{{end}}
-{{if IsAzureStackCloud}}
-   ,"cloudprofileName": "[parameters('cloudprofileName')]",
-    "cloudprofileManagementPortalURL": "[parameters('cloudprofileManagementPortalURL')]",
-    "cloudprofilePublishSettingsURL": "[parameters('cloudprofilePublishSettingsURL')]",
-    "cloudprofileServiceManagementEndpoint": "[parameters('cloudprofileServiceManagementEndpoint')]",
-    "cloudprofileResourceManagerEndpoint": "[parameters('cloudprofileResourceManagerEndpoint')]",
-    "cloudprofileActiveDirectoryEndpoint": "[parameters('cloudprofileActiveDirectoryEndpoint')]",
-    "cloudprofileGalleryEndpoint": "[parameters('cloudprofileGalleryEndpoint')]",
-    "cloudprofileKeyVaultEndpoint": "[parameters('cloudprofileKeyVaultEndpoint')]",
-    "cloudprofileGraphEndpoint": "[parameters('cloudprofileGraphEndpoint')]",
-    "cloudprofileStorageEndpointSuffix": "[parameters('cloudprofileStorageEndpointSuffix')]",
-    "cloudprofileSQLDatabaseDNSSuffix": "[parameters('cloudprofileSQLDatabaseDNSSuffix')]",
-    "cloudprofileTrafficManagerDNSSuffix": "[parameters('cloudprofileTrafficManagerDNSSuffix')]",
-    "cloudprofileKeyVaultDNSSuffix": "[parameters('cloudprofileKeyVaultDNSSuffix')]",
-    "cloudprofileServiceBusEndpointSuffix": "[parameters('cloudprofileServiceBusEndpointSuffix')]",
-    "cloudprofileServiceManagementVMDNSSuffix": "[parameters('cloudprofileServiceManagementVMDNSSuffix')]",
-    "cloudprofileResourceManagerVMDNSSuffix": "[parameters('cloudprofileResourceManagerVMDNSSuffix')]",
-    "cloudprofileContainerRegistryDNSSuffix": "[parameters('cloudprofileContainerRegistryDNSSuffix')]",
-    "identitySystem": "[parameters('cloudprofileIdentitySystem')]"
 {{end}}
