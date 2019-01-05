@@ -673,5 +673,11 @@
         "description": "cloudprofileIdentitySystem"
       },
       "type": "string"
+    },
+    "cloudprofileAuthMethod": {
+      "metadata": {
+        "description": "cloudprofileAuthMethod"
+      },
+      "type": "string"
     }
  {{ end }}

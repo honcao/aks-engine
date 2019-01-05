@@ -137,7 +137,8 @@ write_files:
       "serviceManagementVMDNSSuffix": "{{WrapAsParameter "cloudprofileServiceManagementVMDNSSuffix"}}",
       "resourceManagerVMDNSSuffix": "{{WrapAsParameter "cloudprofileResourceManagerVMDNSSuffix"}}",
       "containerRegistryDNSSuffix": "{{WrapAsParameter "cloudprofileContainerRegistryDNSSuffix"}}",
-      "identitySystem": "{{WrapAsParameter "cloudprofileIdentitySystem"}}"
+      "identitySystem": "{{WrapAsParameter "cloudprofileIdentitySystem"}}",
+      "authMethod": "{{WrapAsParameter "cloudprofileAuthMethod"}}"
    }
 {{end}}
 

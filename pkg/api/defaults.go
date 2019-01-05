@@ -36,6 +36,9 @@ func setAzureStackCloudDefaults(a *Properties) {
 		if len(a.CloudProfile.IdentitySystem) == 0 {
 			a.CloudProfile.IdentitySystem = AzureADIdentitySystem
 		}
+		if len(a.CloudProfile.AuthMethod) == 0 {
+			a.CloudProfile.IdentitySystem = AuthMethodClientSecret
+		}
 	}
 }
 

@@ -69,6 +69,7 @@ type CloudProfile struct {
 	ResourceManagerVMDNSSuffix   string `json:"resourceManagerVMDNSSuffix,omitempty"`
 	ContainerRegistryDNSSuffix   string `json:"containerRegistryDNSSuffix,omitempty"`
 	IdentitySystem               string `json:"identitySystem,omitempty"`
+	AuthMethod                   string `json:"authMethod,omitempty"`
 }
 
 // FeatureFlags defines feature-flag restricted functionality

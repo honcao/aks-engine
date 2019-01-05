@@ -715,6 +715,7 @@ func convertCloudProfileToVLabs(api *CloudProfile, vlabs *vlabs.CloudProfile) {
 	vlabs.ResourceManagerVMDNSSuffix = api.ResourceManagerVMDNSSuffix
 	vlabs.ContainerRegistryDNSSuffix = api.ContainerRegistryDNSSuffix
 	vlabs.IdentitySystem = api.IdentitySystem
+	vlabs.AuthMethod = api.AuthMethod
 }
 
 func convertKubernetesConfigToVLabs(api *KubernetesConfig, vlabs *vlabs.KubernetesConfig) {

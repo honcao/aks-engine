@@ -270,6 +270,8 @@ func writeCloudProfile(cs *api.ContainerService) error {
 	"serviceManagementVMDNSSuffix": "` + cs.Properties.CloudProfile.ServiceManagementVMDNSSuffix + `",
 	"resourceManagerVMDNSSuffix": "` + cs.Properties.CloudProfile.ResourceManagerVMDNSSuffix + `",
 	"containerRegistryDNSSuffix": "` + cs.Properties.CloudProfile.ContainerRegistryDNSSuffix + `"
+	"identitySystem": "` + cs.Properties.CloudProfile.IdentitySystem + `"
+	"authMethod": "` + cs.Properties.CloudProfile.AuthMethod + `"
     }`
 
 	if _, err = file.Write([]byte(content)); err != nil {

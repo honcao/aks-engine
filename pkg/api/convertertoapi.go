@@ -634,6 +634,7 @@ func convertVLabsCloudProfile(vlabscs *vlabs.CloudProfile, api *CloudProfile) {
 	api.ResourceManagerVMDNSSuffix = vlabscs.ResourceManagerVMDNSSuffix
 	api.ContainerRegistryDNSSuffix = vlabscs.ContainerRegistryDNSSuffix
 	api.IdentitySystem = vlabscs.IdentitySystem
+	api.AuthMethod = vlabscs.AuthMethod
 }
 
 func convertVLabsDcosConfig(vlabs *vlabs.DcosConfig, api *DcosConfig) {

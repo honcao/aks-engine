@@ -56,6 +56,7 @@ func getParameters(cs *api.ContainerService, generatorCode string, acsengineVers
 		addValue(parametersMap, "cloudprofileResourceManagerVMDNSSuffix", properties.CloudProfile.ResourceManagerVMDNSSuffix)
 		addValue(parametersMap, "cloudprofileContainerRegistryDNSSuffix", properties.CloudProfile.ContainerRegistryDNSSuffix)
 		addValue(parametersMap, "cloudprofileIdentitySystem", properties.CloudProfile.IdentitySystem)
+		addValue(parametersMap, "cloudprofileAuthMethod", properties.CloudProfile.AuthMethod)
 	}
 
 	addValue(parametersMap, "fqdnEndpointSuffix", cloudSpecConfig.EndpointConfig.ResourceManagerVMDNSSuffix)
