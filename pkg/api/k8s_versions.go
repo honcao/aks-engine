@@ -263,16 +263,25 @@ var k8sComponentVersions = map[string]map[string]string{
 	},
 }
 
-// K8sComponentsByVersionMap represents Docker images used for Kubernetes components based on Kubernetes versions (major.minor.patch)
-var K8sComponentsByVersionMap map[string]map[string]string
+// k8sComponentsByVersionMapAzureStack represents Docker images used for Kubernetes components based on Kubernetes versions (major.minor.patch) on Azure Stack
+//var k8sComponentsByVersionMapAzureStack map[string]map[string]string
+var k8sComponentsByVersionMap map[string]map[string]map[string]string
 
 func init() {
-	K8sComponentsByVersionMap = getKubeConfigs()
+	k8sComponentsByVersionMap = map[string]map[string]map[string]string{
+		AzureCloudType:      getKubeConfigs(AzureCloudType),
+		AzureStackCloudType: getKubeConfigs(AzureStackCloudType),
+	}
 }
 
-func getKubeConfigs() map[string]map[string]string {
+// GetK8sComponentsByVersionMap return K8s components by version map
+func GetK8sComponentsByVersionMap(cloudType string) map[string]map[string]string {
+	return k8sComponentsByVersionMap[cloudType]
+}
+
+func getKubeConfigs(cloudType string) map[string]map[string]string {
 	ret := make(map[string]map[string]string)
-	for _, version := range common.GetAllSupportedKubernetesVersions(true, false) {
+	for _, version := range common.GetAllSupportedKubernetesVersions(true, false, cloudType) {
 		ret[version] = getK8sVersionComponents(version, getVersionOverrides(version))
 	}
 	return ret

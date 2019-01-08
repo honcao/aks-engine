@@ -14,7 +14,7 @@ import (
 func (cs *ContainerService) setAddonsConfig(isUpdate bool) {
 	o := cs.Properties.OrchestratorProfile
 	cloudSpecConfig := cs.GetCloudSpecConfig()
-	k8sComponents := K8sComponentsByVersionMap[o.OrchestratorVersion]
+	k8sComponents := GetK8sComponentsByVersionMap(cs.Properties.GetCloudType())[o.OrchestratorVersion]
 	specConfig := cloudSpecConfig.KubernetesSpecConfig
 	defaultsHeapsterAddonsConfig := KubernetesAddon{
 		Name:    DefaultHeapsterAddonName,

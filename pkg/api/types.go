@@ -1432,6 +1432,14 @@ func (cs *ContainerService) GetAzureProdFQDN() string {
 	return FormatAzureProdFQDNByLocation(cs.Properties.MasterProfile.DNSPrefix, cs.Location, cs.Properties.GetCloudProfileName())
 }
 
+// GetCloudType returns the cloud type for a given apimodel.
+func (p *Properties) GetCloudType() string {
+	if p.CloudProfile != nil {
+		return AzureStackCloudType
+	}
+	return AzureCloudType
+}
+
 // GetCloudProfileName returns the cloud name
 func (p *Properties) GetCloudProfileName() string {
 	var cloudProfileName string

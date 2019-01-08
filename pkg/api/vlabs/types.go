@@ -719,3 +719,11 @@ func (k *KubernetesConfig) RequiresDocker() bool {
 	runtime := strings.ToLower(k.ContainerRuntime)
 	return runtime == "docker" || runtime == ""
 }
+
+// GetCloudType returns the cloud type for a given apimodel.
+func (p *Properties) GetCloudType() string {
+	if p.CloudProfile != nil {
+		return AzureStackCloudType
+	}
+	return AzureCloudType
+}

@@ -348,3 +348,8 @@ func (a *AgentPoolProfile) SetSubnet(subnet string) {
 func (o *OrchestratorProfile) IsSwarmMode() bool {
 	return o.OrchestratorType == DockerCE
 }
+
+// GetCloudType returns the cloud type for a given apimodel.
+func (a *Properties) GetCloudType() string {
+	return AzureCloudType
+}

@@ -229,3 +229,8 @@ func (a *AgentPoolProfile) IsManagedDisks() bool {
 func (a *AgentPoolProfile) IsStorageAccount() bool {
 	return a.StorageProfile == StorageAccount
 }
+
+// GetCloudType returns the cloud type for a given apimodel.
+func (p *Properties) GetCloudType() string {
+	return AzureCloudType
+}

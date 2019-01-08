@@ -9,8 +9,8 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/to"
 
-	"github.com/Azure/aks-engine/pkg/api/agentPoolOnlyApi/v20170831"
-	"github.com/Azure/aks-engine/pkg/api/agentPoolOnlyApi/v20180331"
+	v20170831 "github.com/Azure/aks-engine/pkg/api/agentPoolOnlyApi/v20170831"
+	v20180331 "github.com/Azure/aks-engine/pkg/api/agentPoolOnlyApi/v20180331"
 	"github.com/Azure/aks-engine/pkg/api/agentPoolOnlyApi/vlabs"
 	"github.com/Azure/aks-engine/pkg/api/common"
 	"github.com/Azure/aks-engine/pkg/helpers"
@@ -79,7 +79,7 @@ func convertV20170831AgentPoolOnlyProperties(obj *v20170831.Properties) *Propert
 	properties.HostedMasterProfile.DNSPrefix = obj.DNSPrefix
 	properties.HostedMasterProfile.FQDN = obj.FQDN
 
-	properties.OrchestratorProfile = convertV20170831AgentPoolOnlyOrchestratorProfile(obj.KubernetesVersion)
+	properties.OrchestratorProfile = convertV20170831AgentPoolOnlyOrchestratorProfile(obj.KubernetesVersion, obj.GetCloudType())
 
 	properties.AgentPoolProfiles = make([]*AgentPoolProfile, len(obj.AgentPoolProfiles))
 	for i := range obj.AgentPoolProfiles {
@@ -129,7 +129,7 @@ func convertVLabsAgentPoolOnlyResourcePurchasePlan(vlabs *vlabs.ResourcePurchase
 
 func convertVLabsAgentPoolOnlyProperties(vlabs *vlabs.Properties, api *Properties) {
 	api.ProvisioningState = ProvisioningState(vlabs.ProvisioningState)
-	api.OrchestratorProfile = convertVLabsAgentPoolOnlyOrchestratorProfile(vlabs.KubernetesVersion)
+	api.OrchestratorProfile = convertVLabsAgentPoolOnlyOrchestratorProfile(vlabs.KubernetesVersion, vlabs.GetCloudType())
 	api.MasterProfile = nil
 
 	api.HostedMasterProfile = &HostedMasterProfile{}
@@ -212,10 +212,10 @@ func convertVLabsAgentPoolOnlyWindowsProfile(vlabs *vlabs.WindowsProfile, api *W
 	// }
 }
 
-func convertV20170831AgentPoolOnlyOrchestratorProfile(kubernetesVersion string) *OrchestratorProfile {
+func convertV20170831AgentPoolOnlyOrchestratorProfile(kubernetesVersion string, cloudType string) *OrchestratorProfile {
 	return &OrchestratorProfile{
 		OrchestratorType:    Kubernetes,
-		OrchestratorVersion: common.GetSupportedKubernetesVersion(kubernetesVersion, false),
+		OrchestratorVersion: common.GetSupportedKubernetesVersion(kubernetesVersion, false, cloudType),
 		KubernetesConfig: &KubernetesConfig{
 			EnableRbac:          to.BoolPtr(false),
 			EnableSecureKubelet: to.BoolPtr(false),
@@ -229,10 +229,10 @@ func convertV20170831AgentPoolOnlyOrchestratorProfile(kubernetesVersion string) 
 	}
 }
 
-func convertVLabsAgentPoolOnlyOrchestratorProfile(kubernetesVersion string) *OrchestratorProfile {
+func convertVLabsAgentPoolOnlyOrchestratorProfile(kubernetesVersion string, cloudType string) *OrchestratorProfile {
 	return &OrchestratorProfile{
 		OrchestratorType:    Kubernetes,
-		OrchestratorVersion: common.GetSupportedKubernetesVersion(kubernetesVersion, false),
+		OrchestratorVersion: common.GetSupportedKubernetesVersion(kubernetesVersion, false, cloudType),
 	}
 }
 
@@ -326,7 +326,7 @@ func convertV20180331AgentPoolOnlyProperties(obj *v20180331.Properties) *Propert
 	properties.HostedMasterProfile.FQDN = obj.FQDN
 
 	kubernetesConfig := convertV20180331AgentPoolOnlyKubernetesConfig(obj.EnableRBAC)
-	properties.OrchestratorProfile = convertV20180331AgentPoolOnlyOrchestratorProfile(obj.KubernetesVersion, obj.NetworkProfile, kubernetesConfig)
+	properties.OrchestratorProfile = convertV20180331AgentPoolOnlyOrchestratorProfile(obj.KubernetesVersion, obj.NetworkProfile, kubernetesConfig, obj.GetCloudType())
 
 	properties.AgentPoolProfiles = make([]*AgentPoolProfile, len(obj.AgentPoolProfiles))
 	for i := range obj.AgentPoolProfiles {
@@ -387,7 +387,7 @@ func convertV20180331AgentPoolOnlyKubernetesConfig(enableRBAC *bool) *Kubernetes
 	}
 }
 
-func convertV20180331AgentPoolOnlyOrchestratorProfile(kubernetesVersion string, networkProfile *v20180331.NetworkProfile, kubernetesConfig *KubernetesConfig) *OrchestratorProfile {
+func convertV20180331AgentPoolOnlyOrchestratorProfile(kubernetesVersion string, networkProfile *v20180331.NetworkProfile, kubernetesConfig *KubernetesConfig, cloudType string) *OrchestratorProfile {
 	if kubernetesConfig == nil {
 		kubernetesConfig = &KubernetesConfig{}
 	}
@@ -460,7 +460,7 @@ func convertV20180331AgentPoolOnlyOrchestratorProfile(kubernetesVersion string, 
 
 	return &OrchestratorProfile{
 		OrchestratorType:    Kubernetes,
-		OrchestratorVersion: common.GetSupportedKubernetesVersion(kubernetesVersion, false),
+		OrchestratorVersion: common.GetSupportedKubernetesVersion(kubernetesVersion, false, cloudType),
 		KubernetesConfig:    kubernetesConfig,
 	}
 }

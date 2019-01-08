@@ -291,3 +291,8 @@ func (a *AgentPoolProfile) SetSubnet(subnet string) {
 func (a *AgentPoolProfile) IsManagedDisks() bool {
 	return a.StorageProfile == ManagedDisks
 }
+
+// GetCloudType returns the cloud type for a given apimodel.
+func (a *Properties) GetCloudType() string {
+	return AzureCloudType
+}

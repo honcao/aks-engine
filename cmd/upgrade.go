@@ -158,7 +158,7 @@ func (uc *upgradeCmd) loadCluster(cmd *cobra.Command) error {
 	}
 
 	// get available upgrades for container service
-	orchestratorInfo, err := api.GetOrchestratorVersionProfile(uc.containerService.Properties.OrchestratorProfile, uc.containerService.Properties.HasWindows())
+	orchestratorInfo, err := api.GetOrchestratorVersionProfile(uc.containerService.Properties.OrchestratorProfile, uc.containerService.Properties.HasWindows(), uc.containerService.Properties.GetCloudType())
 	if err != nil {
 		return errors.Wrap(err, "error getting list of available upgrades")
 	}

@@ -3,6 +3,8 @@
 
 package common
 
+import "strings"
+
 // the orchestrators supported
 const (
 	// Mesos is the string constant for MESOS orchestrator type
@@ -15,6 +17,22 @@ const (
 	Kubernetes string = "Kubernetes"
 	// SwarmMode is the string constant for the Swarm Mode orchestrator type
 	SwarmMode string = "SwarmMode"
+	// AzureStackDCOS is the string constant for DCOS orchestrator type on AzureStack and defaults to DCOS188
+	AzureStackDCOS string = "AzureStackDCOS"
+	// AzureStackSwarm is the string constant for the Swarm orchestrator type on AzureStack
+	AzureStackSwarm string = "AzureStackSwarm"
+	// AzureStackKubernetes is the string constant for the Kubernetes orchestrator type on AzureStack
+	AzureStackKubernetes string = "AzureStackKubernetes"
+	// AzureStackSwarmMode is the string constant for the Swarm Mode orchestrator type on AzureStack
+	AzureStackSwarmMode string = "AzureStackSwarmMode"
+)
+
+// the cloud type by vlabs
+const (
+	// AzureCloudType is the string constant for Azure cloud type
+	AzureCloudType string = "Azure"
+	// AzureStackSwarmMode is the string constant for Azure stack cloud type
+	AzureStackCloudType string = "AzureStack"
 )
 
 // validation values
@@ -97,16 +115,26 @@ const (
 )
 
 // GetAllSupportedDCOSVersions returns a slice of all supported DCOS versions.
-func GetAllSupportedDCOSVersions() []string {
-	return AllDCOSSupportedVersions
+func GetAllSupportedDCOSVersions(cloudType string) []string {
+	var versions []string
+	if strings.EqualFold(cloudType, AzureCloudType) {
+		versions = AllDCOSSupportedVersions
+	}
+	return versions
 }
 
 // GetAllSupportedSwarmVersions returns a slice of all supported Swarm versions.
-func GetAllSupportedSwarmVersions() []string {
-	return []string{SwarmVersion}
+func GetAllSupportedSwarmVersions(cloudType string) []string {
+	if strings.EqualFold(cloudType, AzureCloudType) {
+		return []string{SwarmVersion}
+	}
+	return []string{}
 }
 
 // GetAllSupportedDockerCEVersions returns a slice of all supported Docker CE versions.
-func GetAllSupportedDockerCEVersions() []string {
-	return []string{DockerCEVersion}
+func GetAllSupportedDockerCEVersions(cloudType string) []string {
+	if strings.EqualFold(cloudType, AzureCloudType) {
+		return []string{DockerCEVersion}
+	}
+	return []string{}
 }

@@ -36,3 +36,11 @@ const (
 	// MaxAgentCount are the maximum number of agents
 	MaxAgentCount = 100
 )
+
+// the cloud type by vlabs
+const (
+	// AzureCloudType is the string constant for Azure cloud type
+	AzureCloudType string = "Azure"
+	// AzureStackSwarmMode is the string constant for Azure stack cloud type
+	AzureStackCloudType string = "AzureStack"
+)

@@ -255,7 +255,7 @@ func convertV20170131Properties(v20170131 *v20170131.Properties, api *Properties
 	api.ProvisioningState = ProvisioningState(v20170131.ProvisioningState)
 	if v20170131.OrchestratorProfile != nil {
 		api.OrchestratorProfile = &OrchestratorProfile{}
-		convertV20170131OrchestratorProfile(v20170131.OrchestratorProfile, api.OrchestratorProfile, v20170131.HasWindows())
+		convertV20170131OrchestratorProfile(v20170131.OrchestratorProfile, api.OrchestratorProfile, v20170131.HasWindows(), v20170131.GetCloudType())
 	}
 	if v20170131.MasterProfile != nil {
 		api.MasterProfile = &MasterProfile{}
@@ -308,7 +308,7 @@ func convertV20170701Properties(v20170701 *v20170701.Properties, api *Properties
 
 	if v20170701.OrchestratorProfile != nil {
 		api.OrchestratorProfile = &OrchestratorProfile{}
-		convertV20170701OrchestratorProfile(v20170701.OrchestratorProfile, api.OrchestratorProfile, isUpdate, v20170701.HasWindows())
+		convertV20170701OrchestratorProfile(v20170701.OrchestratorProfile, api.OrchestratorProfile, isUpdate, v20170701.HasWindows(), v20170701.GetCloudType())
 	}
 	if v20170701.MasterProfile != nil {
 		api.MasterProfile = &MasterProfile{}
@@ -551,16 +551,16 @@ func convertV20160330OrchestratorProfile(v20160330 *v20160330.OrchestratorProfil
 	}
 }
 
-func convertV20170131OrchestratorProfile(v20170131 *v20170131.OrchestratorProfile, api *OrchestratorProfile, hasWindows bool) {
+func convertV20170131OrchestratorProfile(v20170131 *v20170131.OrchestratorProfile, api *OrchestratorProfile, hasWindows bool, cloudType string) {
 	api.OrchestratorType = v20170131.OrchestratorType
 	if api.OrchestratorType == Kubernetes {
-		api.OrchestratorVersion = common.GetSupportedKubernetesVersion("", hasWindows)
+		api.OrchestratorVersion = common.GetSupportedKubernetesVersion("", hasWindows, cloudType)
 	} else if api.OrchestratorType == DCOS {
 		api.OrchestratorVersion = common.DCOSVersion1Dot9Dot0
 	}
 }
 
-func convertV20170701OrchestratorProfile(v20170701cs *v20170701.OrchestratorProfile, api *OrchestratorProfile, isUpdate, hasWindows bool) {
+func convertV20170701OrchestratorProfile(v20170701cs *v20170701.OrchestratorProfile, api *OrchestratorProfile, isUpdate, hasWindows bool, cloudType string) {
 	if v20170701cs.OrchestratorType == v20170701.DockerCE {
 		api.OrchestratorType = SwarmMode
 	} else {
@@ -569,9 +569,9 @@ func convertV20170701OrchestratorProfile(v20170701cs *v20170701.OrchestratorProf
 
 	switch api.OrchestratorType {
 	case Kubernetes:
-		api.OrchestratorVersion = common.RationalizeReleaseAndVersion(Kubernetes, "", v20170701cs.OrchestratorVersion, isUpdate, hasWindows)
+		api.OrchestratorVersion = common.RationalizeReleaseAndVersion(Kubernetes, "", v20170701cs.OrchestratorVersion, isUpdate, hasWindows, cloudType)
 		if api.OrchestratorVersion == "" {
-			api.OrchestratorVersion = common.GetDefaultKubernetesVersion(hasWindows)
+			api.OrchestratorVersion = common.GetDefaultKubernetesVersion(hasWindows, cloudType)
 		}
 	case DCOS:
 		switch v20170701cs.OrchestratorVersion {
@@ -600,7 +600,8 @@ func convertVLabsOrchestratorProfile(vp *vlabs.Properties, api *OrchestratorProf
 			vlabscs.OrchestratorRelease,
 			vlabscs.OrchestratorVersion,
 			isUpdate,
-			vp.HasWindows())
+			vp.HasWindows(),
+			vp.GetCloudType())
 	case DCOS:
 		if vlabscs.DcosConfig != nil {
 			api.DcosConfig = &DcosConfig{}
@@ -611,7 +612,8 @@ func convertVLabsOrchestratorProfile(vp *vlabs.Properties, api *OrchestratorProf
 			vlabscs.OrchestratorRelease,
 			vlabscs.OrchestratorVersion,
 			isUpdate,
-			false)
+			false,
+			vp.GetCloudType())
 	}
 }
 

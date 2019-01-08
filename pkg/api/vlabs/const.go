@@ -20,6 +20,14 @@ const (
 	SwarmMode string = "SwarmMode"
 )
 
+// the cloud type by vlabs
+const (
+	// AzureCloudType is the string constant for Azure cloud type
+	AzureCloudType string = "Azure"
+	// AzureStackSwarmMode is the string constant for Azure stack cloud type
+	AzureStackCloudType string = "AzureStack"
+)
+
 // the OSTypes supported by vlabs
 const (
 	Windows OSType = "Windows"

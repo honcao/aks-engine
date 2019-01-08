@@ -32,3 +32,11 @@ const (
 	// ManagedDisks means that the nodes use managed disks for their os and attached volumes
 	ManagedDisks = "ManagedDisks"
 )
+
+// the cloud type by vlabs
+const (
+	// AzureCloudType is the string constant for Azure cloud type
+	AzureCloudType string = "Azure"
+	// AzureStackSwarmMode is the string constant for Azure stack cloud type
+	AzureStackCloudType string = "AzureStack"
+)

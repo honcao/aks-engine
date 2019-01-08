@@ -18,9 +18,9 @@ import (
 	"github.com/Azure/aks-engine/pkg/helpers"
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/go-playground/validator.v9"
+	validator "gopkg.in/go-playground/validator.v9"
 )
 
 var (
@@ -169,7 +169,8 @@ func (a *Properties) validateOrchestratorProfile(isUpdate bool) error {
 				o.OrchestratorRelease,
 				o.OrchestratorVersion,
 				isUpdate,
-				false)
+				false,
+				a.GetCloudType())
 			if version == "" {
 				return errors.Errorf("the following OrchestratorProfile configuration is not supported: OrchestratorType: %s, OrchestratorRelease: %s, OrchestratorVersion: %s. Please check supported Release or Version for this build of aks-engine", o.OrchestratorType, o.OrchestratorRelease, o.OrchestratorVersion)
 			}
@@ -189,11 +190,12 @@ func (a *Properties) validateOrchestratorProfile(isUpdate bool) error {
 				o.OrchestratorRelease,
 				o.OrchestratorVersion,
 				isUpdate,
-				a.HasWindows())
+				a.HasWindows(),
+				a.GetCloudType())
 			if version == "" && a.HasWindows() {
-				return errors.Errorf("the following OrchestratorProfile configuration is not supported with OsType \"Windows\": OrchestratorType: \"%s\", OrchestratorRelease: \"%s\", OrchestratorVersion: \"%s\". Please use one of the following versions: %v", o.OrchestratorType, o.OrchestratorRelease, o.OrchestratorVersion, common.GetAllSupportedKubernetesVersions(false, true))
+				return errors.Errorf("the following OrchestratorProfile configuration is not supported with OsType \"Windows\": OrchestratorType: \"%s\", OrchestratorRelease: \"%s\", OrchestratorVersion: \"%s\". Please use one of the following versions: %v", o.OrchestratorType, o.OrchestratorRelease, o.OrchestratorVersion, common.GetAllSupportedKubernetesVersions(false, true, a.GetCloudType()))
 			} else if version == "" {
-				return errors.Errorf("the following OrchestratorProfile configuration is not supported: OrchestratorType: \"%s\", OrchestratorRelease: \"%s\", OrchestratorVersion: \"%s\". Please use one of the following versions: %v", o.OrchestratorType, o.OrchestratorRelease, o.OrchestratorVersion, common.GetAllSupportedKubernetesVersions(false, false))
+				return errors.Errorf("the following OrchestratorProfile configuration is not supported: OrchestratorType: \"%s\", OrchestratorRelease: \"%s\", OrchestratorVersion: \"%s\". Please use one of the following versions: %v", o.OrchestratorType, o.OrchestratorRelease, o.OrchestratorVersion, common.GetAllSupportedKubernetesVersions(false, false, a.GetCloudType()))
 			}
 
 			sv, err := semver.Make(version)
@@ -303,9 +305,10 @@ func (a *Properties) validateOrchestratorProfile(isUpdate bool) error {
 				o.OrchestratorRelease,
 				o.OrchestratorVersion,
 				false,
-				a.HasWindows())
+				a.HasWindows(),
+				a.GetCloudType())
 			if version == "" {
-				patchVersion := common.GetValidPatchVersion(o.OrchestratorType, o.OrchestratorVersion, isUpdate, a.HasWindows())
+				patchVersion := common.GetValidPatchVersion(o.OrchestratorType, o.OrchestratorVersion, isUpdate, a.HasWindows(), a.GetCloudType())
 				// if there isn't a supported patch version for this version fail
 				if patchVersion == "" {
 					if a.HasWindows() {
@@ -350,7 +353,7 @@ func (a *Properties) validateMasterProfile() error {
 
 	if m.IsVirtualMachineScaleSets() && a.OrchestratorProfile.OrchestratorType == Kubernetes {
 		log.Warnf("Clusters with VMSS masters are not yet upgradable! You will not be able to upgrade your cluster until a future version of aks-engine!")
-		e := validateVMSS(a.OrchestratorProfile, false, m.StorageProfile)
+		e := validateVMSS(a.OrchestratorProfile, false, m.StorageProfile, a.GetCloudType())
 		if e != nil {
 			return e
 		}
@@ -418,7 +421,7 @@ func (a *Properties) validateAgentPoolProfiles(isUpdate bool) error {
 		}
 
 		if agentPoolProfile.AvailabilityProfile == VirtualMachineScaleSets {
-			e := validateVMSS(a.OrchestratorProfile, isUpdate, agentPoolProfile.StorageProfile)
+			e := validateVMSS(a.OrchestratorProfile, isUpdate, agentPoolProfile.StorageProfile, a.GetCloudType())
 			if e != nil {
 				return e
 			}
@@ -434,7 +437,7 @@ func (a *Properties) validateAgentPoolProfiles(isUpdate bool) error {
 			}
 		}
 
-		if e := agentPoolProfile.validateWindows(a.OrchestratorProfile, a.WindowsProfile, isUpdate); agentPoolProfile.OSType == Windows && e != nil {
+		if e := agentPoolProfile.validateWindows(a.OrchestratorProfile, a.WindowsProfile, isUpdate, a.GetCloudType()); agentPoolProfile.OSType == Windows && e != nil {
 			return e
 		}
 	}
@@ -515,7 +518,8 @@ func (a *Properties) validateAddons() error {
 						a.OrchestratorProfile.OrchestratorRelease,
 						a.OrchestratorProfile.OrchestratorVersion,
 						false,
-						false)
+						false,
+						a.GetCloudType())
 					if version == "" {
 						return errors.Errorf("the following user supplied OrchestratorProfile configuration is not supported: OrchestratorType: %s, OrchestratorRelease: %s, OrchestratorVersion: %s. Please check supported Release or Version for this build of aks-engine", a.OrchestratorProfile.OrchestratorType, a.OrchestratorProfile.OrchestratorRelease, a.OrchestratorProfile.OrchestratorVersion)
 					}
@@ -652,7 +656,8 @@ func (a *Properties) validateManagedIdentity() error {
 				a.OrchestratorProfile.OrchestratorRelease,
 				a.OrchestratorProfile.OrchestratorVersion,
 				false,
-				false)
+				false,
+				a.GetCloudType())
 			if version == "" {
 				return errors.Errorf("the following user supplied OrchestratorProfile configuration is not supported: OrchestratorType: %s, OrchestratorRelease: %s, OrchestratorVersion: %s. Please check supported Release or Version for this build of aks-engine", a.OrchestratorProfile.OrchestratorType, a.OrchestratorProfile.OrchestratorRelease, a.OrchestratorProfile.OrchestratorVersion)
 			}
@@ -778,14 +783,16 @@ func (a *AgentPoolProfile) validateKubernetesDistro() error {
 	return nil
 }
 
-func validateVMSS(o *OrchestratorProfile, isUpdate bool, storageProfile string) error {
+func validateVMSS(o *OrchestratorProfile, isUpdate bool, storageProfile string, cloudType string) error {
 	if o.OrchestratorType == Kubernetes {
 		version := common.RationalizeReleaseAndVersion(
 			o.OrchestratorType,
 			o.OrchestratorRelease,
 			o.OrchestratorVersion,
 			isUpdate,
-			false)
+			false,
+			cloudType,
+		)
 		if version == "" {
 			return errors.Errorf("the following OrchestratorProfile configuration is not supported: OrchestratorType: %s, OrchestratorRelease: %s, OrchestratorVersion: %s. Please check supported Release or Version for this build of aks-engine", o.OrchestratorType, o.OrchestratorRelease, o.OrchestratorVersion)
 		}
@@ -818,7 +825,7 @@ func validateVMSS(o *OrchestratorProfile, isUpdate bool, storageProfile string) 
 	return nil
 }
 
-func (a *AgentPoolProfile) validateWindows(o *OrchestratorProfile, w *WindowsProfile, isUpdate bool) error {
+func (a *AgentPoolProfile) validateWindows(o *OrchestratorProfile, w *WindowsProfile, isUpdate bool, cloudType string) error {
 	switch o.OrchestratorType {
 	case DCOS:
 	case Swarm:
@@ -829,7 +836,8 @@ func (a *AgentPoolProfile) validateWindows(o *OrchestratorProfile, w *WindowsPro
 			o.OrchestratorRelease,
 			o.OrchestratorVersion,
 			isUpdate,
-			true)
+			true,
+			cloudType)
 		if version == "" {
 			return errors.Errorf("Orchestrator %s version %s does not support Windows", o.OrchestratorType, o.OrchestratorVersion)
 		}

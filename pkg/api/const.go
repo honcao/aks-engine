@@ -3,7 +3,7 @@
 
 package api
 
-// the orchestrators supported by vlabs
+// the orchestrators supported
 const (
 	// Mesos is the string constant for MESOS orchestrator type
 	Mesos string = "Mesos"
@@ -15,6 +15,22 @@ const (
 	Kubernetes string = "Kubernetes"
 	// SwarmMode is the string constant for the Swarm Mode orchestrator type
 	SwarmMode string = "SwarmMode"
+	// AzureStackDCOS is the string constant for DCOS orchestrator type on AzureStack and defaults to DCOS188
+	AzureStackDCOS string = "AzureStackDCOS"
+	// AzureStackSwarm is the string constant for the Swarm orchestrator type on AzureStack
+	AzureStackSwarm string = "AzureStackSwarm"
+	// AzureStackKubernetes is the string constant for the Kubernetes orchestrator type on AzureStack
+	AzureStackKubernetes string = "AzureStackKubernetes"
+	// AzureStackSwarmMode is the string constant for the Swarm Mode orchestrator type on AzureStack
+	AzureStackSwarmMode string = "AzureStackSwarmMode"
+)
+
+// the cloud type by vlabs
+const (
+	// AzureCloudType is the string constant for Azure cloud type
+	AzureCloudType string = "Azure"
+	// AzureStackSwarmMode is the string constant for Azure stack cloud type
+	AzureStackCloudType string = "AzureStack"
 )
 
 // the OSTypes supported by vlabs

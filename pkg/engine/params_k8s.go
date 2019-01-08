@@ -25,7 +25,8 @@ func assignKubernetesParameters(properties *api.Properties, parametersMap params
 	if orchestratorProfile.IsKubernetes() {
 
 		k8sVersion := orchestratorProfile.OrchestratorVersion
-		k8sComponents := api.K8sComponentsByVersionMap[k8sVersion]
+		k8sComponentsByVersionMap := api.GetK8sComponentsByVersionMap(properties.GetCloudType())
+		k8sComponents := k8sComponentsByVersionMap[k8sVersion]
 		kubernetesConfig := orchestratorProfile.KubernetesConfig
 		hyperKubeImageBase := kubernetesConfig.KubernetesImageBase
 		kubernetesImageBase := cloudSpecConfig.KubernetesSpecConfig.KubernetesImageBase

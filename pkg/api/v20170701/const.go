@@ -20,6 +20,14 @@ const (
 	DockerCE string = "DockerCE"
 )
 
+// the cloud type by vlabs
+const (
+	// AzureCloudType is the string constant for Azure cloud type
+	AzureCloudType string = "Azure"
+	// AzureStackSwarmMode is the string constant for Azure stack cloud type
+	AzureStackCloudType string = "AzureStack"
+)
+
 const (
 	// Windows OSType
 	Windows OSType = "Windows"
