@@ -1440,6 +1440,15 @@ func (p *Properties) GetCloudType() string {
 	return AzureCloudType
 }
 
+// IsAzureStackCloud return true if the cloud is azure stack cloud, return false if the cloud is azure cloud
+func (p *Properties) IsAzureStackCloud() bool {
+	var cloudProfileName string
+	if p.CloudProfile != nil {
+		cloudProfileName = p.CloudProfile.Name
+	}
+	return strings.EqualFold(cloudProfileName, AzureStackCloud)
+}
+
 // GetCloudProfileName returns the cloud name
 func (p *Properties) GetCloudProfileName() string {
 	var cloudProfileName string

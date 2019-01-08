@@ -73,7 +73,7 @@ func (cs *ContainerService) SetPropertiesDefaults(isUpgrade, isScale bool) (bool
 		properties.setHostedMasterProfileDefaults()
 	}
 
-	certsGenerated, _, e := properties.setDefaultCerts()
+	certsGenerated, _, e := cs.setDefaultCerts()
 	if e != nil {
 		return false, e
 	}
@@ -523,7 +523,8 @@ func (p *Properties) setHostedMasterProfileDefaults() {
 	p.HostedMasterProfile.Subnet = DefaultKubernetesMasterSubnet
 }
 
-func (p *Properties) setDefaultCerts() (bool, []net.IP, error) {
+func (cs *ContainerService) setDefaultCerts() (bool, []net.IP, error) {
+	p := cs.Properties
 	if p.MasterProfile == nil || p.OrchestratorProfile.OrchestratorType != Kubernetes {
 		return false, nil, nil
 	}
@@ -535,7 +536,12 @@ func (p *Properties) setDefaultCerts() (bool, []net.IP, error) {
 	}
 
 	var azureProdFQDNs []string
-	for _, location := range helpers.GetAzureLocations() {
+	var allLocations []string
+	allLocations = helpers.GetAzureLocations()
+	if cs.Properties.IsAzureStackCloud() {
+		allLocations = append(allLocations, cs.Location)
+	}
+	for _, location := range allLocations {
 		azureProdFQDNs = append(azureProdFQDNs, FormatAzureProdFQDNByLocation(p.MasterProfile.DNSPrefix, location, p.GetCloudProfileName()))
 	}
 
