@@ -8,13 +8,13 @@ import (
 )
 
 func Test_GetAllSupportedKubernetesVersions(t *testing.T) {
-	responseFromGetter := GetAllSupportedKubernetesVersions(true, false)
+	responseFromGetter := GetAllSupportedKubernetesVersions(true, false, AzureCloudType)
 
 	if len(AllKubernetesSupportedVersions) != len(responseFromGetter) {
 		t.Errorf("GetAllSupportedKubernetesVersions(true, false) returned %d items, expected %d", len(responseFromGetter), len(AllKubernetesSupportedVersions))
 	}
 
-	responseFromGetter = GetAllSupportedKubernetesVersions(false, false)
+	responseFromGetter = GetAllSupportedKubernetesVersions(false, false, AzureCloudType)
 
 	for _, version := range responseFromGetter {
 		if !AllKubernetesSupportedVersions[version] {
@@ -24,30 +24,30 @@ func Test_GetAllSupportedKubernetesVersions(t *testing.T) {
 }
 
 func Test_GetSupportedKubernetesVersion(t *testing.T) {
-	versions := GetAllSupportedKubernetesVersions(false, false)
+	versions := GetAllSupportedKubernetesVersions(false, false, AzureCloudType)
 	for _, version := range versions {
-		supportedVersion := GetSupportedKubernetesVersion(version, false)
+		supportedVersion := GetSupportedKubernetesVersion(version, false, AzureCloudType)
 		if supportedVersion != version {
 			t.Errorf("GetSupportedKubernetesVersion(%s) should return the same passed-in string, instead returned %s", version, supportedVersion)
 		}
 	}
 
-	defaultVersion := GetSupportedKubernetesVersion("", false)
-	if defaultVersion != GetDefaultKubernetesVersion(false) {
-		t.Errorf("GetSupportedKubernetesVersion(\"\") should return the default version %s, instead returned %s", GetDefaultKubernetesVersion(false), defaultVersion)
+	defaultVersion := GetSupportedKubernetesVersion("", false, AzureCloudType)
+	if defaultVersion != GetDefaultKubernetesVersion(false, AzureCloudType) {
+		t.Errorf("GetSupportedKubernetesVersion(\"\") should return the default version %s, instead returned %s", GetDefaultKubernetesVersion(false, AzureCloudType), defaultVersion)
 	}
 
-	winVersions := GetAllSupportedKubernetesVersions(false, true)
+	winVersions := GetAllSupportedKubernetesVersions(false, true, AzureCloudType)
 	for _, version := range winVersions {
-		supportedVersion := GetSupportedKubernetesVersion(version, true)
+		supportedVersion := GetSupportedKubernetesVersion(version, true, AzureCloudType)
 		if supportedVersion != version {
 			t.Errorf("GetSupportedKubernetesVersion(%s) should return the same passed-in string, instead returned %s", version, supportedVersion)
 		}
 	}
 
-	defaultWinVersion := GetSupportedKubernetesVersion("", true)
-	if defaultWinVersion != GetDefaultKubernetesVersion(true) {
-		t.Errorf("GetSupportedKubernetesVersion(\"\") should return the default version for windows %s, instead returned %s", GetDefaultKubernetesVersion(true), defaultWinVersion)
+	defaultWinVersion := GetSupportedKubernetesVersion("", true, AzureCloudType)
+	if defaultWinVersion != GetDefaultKubernetesVersion(true, AzureCloudType) {
+		t.Errorf("GetSupportedKubernetesVersion(\"\") should return the default version for windows %s, instead returned %s", GetDefaultKubernetesVersion(true, AzureCloudType), defaultWinVersion)
 	}
 }
 
@@ -326,33 +326,33 @@ func TestGetVersionsBetween(t *testing.T) {
 }
 
 func Test_GetValidPatchVersion(t *testing.T) {
-	v := GetValidPatchVersion(Kubernetes, "", false, false)
-	if v != GetDefaultKubernetesVersion(false) {
+	v := GetValidPatchVersion(Kubernetes, "", false, false, AzureCloudType)
+	if v != GetDefaultKubernetesVersion(false, AzureCloudType) {
 		t.Errorf("It is not the default Kubernetes version")
 	}
 
 	for version, enabled := range AllKubernetesSupportedVersions {
 		if enabled {
-			v = GetValidPatchVersion(Kubernetes, version, false, false)
+			v = GetValidPatchVersion(Kubernetes, version, false, false, AzureCloudType)
 			if v != version {
 				t.Errorf("Expected version %s, instead got version %s", version, v)
 			}
 		}
 	}
 
-	v = GetValidPatchVersion(Kubernetes, "", true, true)
-	if v != GetDefaultKubernetesVersion(true) {
+	v = GetValidPatchVersion(Kubernetes, "", true, true, AzureCloudType)
+	if v != GetDefaultKubernetesVersion(true, AzureCloudType) {
 		t.Errorf("It is not the default Kubernetes version")
 	}
 
-	v = GetValidPatchVersion(Mesos, "1.6.0", false, false)
+	v = GetValidPatchVersion(Mesos, "1.6.0", false, false, AzureCloudType)
 	if v != "" {
 		t.Errorf("Expected empty version for unsupported orchType")
 	}
 
 	for version, enabled := range AllKubernetesWindowsSupportedVersions {
 		if enabled {
-			v = GetValidPatchVersion(Kubernetes, version, false, true)
+			v = GetValidPatchVersion(Kubernetes, version, false, true, AzureCloudType)
 			if v != version {
 				t.Errorf("Expected version %s, instead got version %s", version, v)
 			}
@@ -456,85 +456,85 @@ func TestGetMinMaxVersion(t *testing.T) {
 }
 
 func Test_RationalizeReleaseAndVersion(t *testing.T) {
-	version := RationalizeReleaseAndVersion(Kubernetes, "", "", false, false)
-	if version != GetDefaultKubernetesVersion(false) {
+	version := RationalizeReleaseAndVersion(Kubernetes, "", "", false, false, AzureCloudType)
+	if version != GetDefaultKubernetesVersion(false, AzureCloudType) {
 		t.Errorf("It is not the default Kubernetes version")
 	}
 
-	latest1Dot6Version := GetLatestPatchVersion("1.6", GetAllSupportedKubernetesVersions(true, false))
-	version = RationalizeReleaseAndVersion(Kubernetes, "1.6", "", true, false)
+	latest1Dot6Version := GetLatestPatchVersion("1.6", GetAllSupportedKubernetesVersions(true, false, AzureCloudType))
+	version = RationalizeReleaseAndVersion(Kubernetes, "1.6", "", true, false, AzureCloudType)
 	if version != latest1Dot6Version {
 		t.Errorf("It is not Kubernetes version %s", latest1Dot6Version)
 	}
 
 	expectedVersion := "1.7.16"
-	version = RationalizeReleaseAndVersion(Kubernetes, "", expectedVersion, true, false)
+	version = RationalizeReleaseAndVersion(Kubernetes, "", expectedVersion, true, false, AzureCloudType)
 	if version != expectedVersion {
 		t.Errorf("It is not Kubernetes version %s", expectedVersion)
 	}
 
-	version = RationalizeReleaseAndVersion(Kubernetes, "1.7", expectedVersion, true, false)
+	version = RationalizeReleaseAndVersion(Kubernetes, "1.7", expectedVersion, true, false, AzureCloudType)
 	if version != expectedVersion {
 		t.Errorf("It is not Kubernetes version %s", expectedVersion)
 	}
 
-	version = RationalizeReleaseAndVersion(Kubernetes, "", "v"+expectedVersion, true, false)
+	version = RationalizeReleaseAndVersion(Kubernetes, "", "v"+expectedVersion, true, false, AzureCloudType)
 	if version != expectedVersion {
 		t.Errorf("It is not Kubernetes version %s", expectedVersion)
 	}
 
-	version = RationalizeReleaseAndVersion(Kubernetes, "v1.7", "v"+expectedVersion, true, false)
+	version = RationalizeReleaseAndVersion(Kubernetes, "v1.7", "v"+expectedVersion, true, false, AzureCloudType)
 	if version != expectedVersion {
 		t.Errorf("It is not Kubernetes version %s", expectedVersion)
 	}
 
-	version = RationalizeReleaseAndVersion(Kubernetes, "1.1", "", true, false)
+	version = RationalizeReleaseAndVersion(Kubernetes, "1.1", "", true, false, AzureCloudType)
 	if version != "" {
 		t.Errorf("It is not empty string")
 	}
 
-	version = RationalizeReleaseAndVersion(Kubernetes, "1.1", "1.6.6", true, false)
+	version = RationalizeReleaseAndVersion(Kubernetes, "1.1", "1.6.6", true, false, AzureCloudType)
 	if version != "" {
 		t.Errorf("It is not empty string")
 	}
 
-	version = RationalizeReleaseAndVersion(Kubernetes, "", "", true, true)
-	if version != GetDefaultKubernetesVersion(true) {
+	version = RationalizeReleaseAndVersion(Kubernetes, "", "", true, true, AzureCloudType)
+	if version != GetDefaultKubernetesVersion(true, AzureCloudType) {
 		t.Errorf("It is not the default Windows Kubernetes version")
 	}
 
-	version = RationalizeReleaseAndVersion(Kubernetes, "1.5", "", true, true)
+	version = RationalizeReleaseAndVersion(Kubernetes, "1.5", "", true, true, AzureCloudType)
 	if version != "" {
 		t.Errorf("It is not empty string")
 	}
 
 	expectedVersion = "1.8.12"
-	version = RationalizeReleaseAndVersion(Kubernetes, "", expectedVersion, true, true)
+	version = RationalizeReleaseAndVersion(Kubernetes, "", expectedVersion, true, true, AzureCloudType)
 	if version != expectedVersion {
 		t.Errorf("It is not Kubernetes version %s", expectedVersion)
 	}
 
-	version = RationalizeReleaseAndVersion(Kubernetes, "1.8", expectedVersion, true, true)
+	version = RationalizeReleaseAndVersion(Kubernetes, "1.8", expectedVersion, true, true, AzureCloudType)
 	if version != expectedVersion {
 		t.Errorf("It is not Kubernetes version %s", expectedVersion)
 	}
 
-	version = RationalizeReleaseAndVersion(Kubernetes, "", "v"+expectedVersion, true, true)
+	version = RationalizeReleaseAndVersion(Kubernetes, "", "v"+expectedVersion, true, true, AzureCloudType)
 	if version != expectedVersion {
 		t.Errorf("It is not Kubernetes version %s", expectedVersion)
 	}
 
-	version = RationalizeReleaseAndVersion(Kubernetes, "v1.8", "v"+expectedVersion, true, true)
+	version = RationalizeReleaseAndVersion(Kubernetes, "v1.8", "v"+expectedVersion, true, true, AzureCloudType)
 	if version != expectedVersion {
 		t.Errorf("It is not Kubernetes version %s", expectedVersion)
 	}
 
-	version = RationalizeReleaseAndVersion(Kubernetes, "1.1", "", true, true)
+	version = RationalizeReleaseAndVersion(Kubernetes, "1.1", "", true, true, AzureCloudType)
 	if version != "" {
 		t.Errorf("It is not empty string")
 	}
 
-	version = RationalizeReleaseAndVersion(Kubernetes, "1.1", "1.6.6", true, true)
+	version = RationalizeReleaseAndVersion(Kubernetes, "1.1", "1.6.6", true, true, AzureCloudType)
 	if version != "" {
 		t.Errorf("It is not empty string")
 	}
@@ -543,8 +543,8 @@ func Test_RationalizeReleaseAndVersion(t *testing.T) {
 func Test_IsSupportedKubernetesVersion(t *testing.T) {
 	for _, isUpdate := range []bool{true, false} {
 		for _, hasWindows := range []bool{true, false} {
-			for _, version := range GetAllSupportedKubernetesVersions(isUpdate, hasWindows) {
-				if !IsSupportedKubernetesVersion(version, isUpdate, hasWindows) {
+			for _, version := range GetAllSupportedKubernetesVersions(isUpdate, hasWindows, AzureCloudType) {
+				if !IsSupportedKubernetesVersion(version, isUpdate, hasWindows, AzureCloudType) {
 					t.Errorf("Expected version %s to be supported when isUpdate is %t and hasWindows is %t", version, isUpdate, hasWindows)
 				}
 			}

@@ -9,7 +9,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/to"
 
-	"github.com/Azure/aks-engine/pkg/api/agentPoolOnlyApi/v20180331"
+	v20180331 "github.com/Azure/aks-engine/pkg/api/agentPoolOnlyApi/v20180331"
 )
 
 func TestConvertV20180331AgentPoolOnlyOrchestratorProfile(t *testing.T) {
@@ -32,7 +32,7 @@ func TestConvertV20180331AgentPoolOnlyOrchestratorProfile(t *testing.T) {
 		DockerBridgeCidr: dockerBridgeSubnet,
 	}
 
-	api := convertV20180331AgentPoolOnlyOrchestratorProfile(kubernetesVersion, p, nil)
+	api := convertV20180331AgentPoolOnlyOrchestratorProfile(kubernetesVersion, p, nil, AzureCloudType)
 
 	if api.OrchestratorVersion != kubernetesVersion {
 		t.Error("error in Orchestrator profile OrchestratorVersion conversion")
@@ -65,7 +65,7 @@ func TestConvertV20180331AgentPoolOnlyOrchestratorProfile(t *testing.T) {
 	// no networkProfile is defined
 	p = nil
 
-	api = convertV20180331AgentPoolOnlyOrchestratorProfile(kubernetesVersion, p, nil)
+	api = convertV20180331AgentPoolOnlyOrchestratorProfile(kubernetesVersion, p, nil, AzureCloudType)
 
 	if api.OrchestratorVersion != kubernetesVersion {
 		t.Error("error in Orchestrator profile OrchestratorVersion conversion")
@@ -100,7 +100,7 @@ func TestConvertV20180331AgentPoolOnlyOrchestratorProfile(t *testing.T) {
 		NetworkPlugin: networkPluginKubenet,
 	}
 
-	api = convertV20180331AgentPoolOnlyOrchestratorProfile(kubernetesVersion, p, nil)
+	api = convertV20180331AgentPoolOnlyOrchestratorProfile(kubernetesVersion, p, nil, AzureCloudType)
 
 	if api.OrchestratorVersion != kubernetesVersion {
 		t.Error("error in Orchestrator profile OrchestratorVersion conversion")
@@ -221,7 +221,7 @@ func TestConvertFromV20180331AddonProfile(t *testing.T) {
 }
 
 func TestConvertV20170831AgentPoolOnlyOrchestratorProfile_KubernetesConfig(t *testing.T) {
-	op := convertV20170831AgentPoolOnlyOrchestratorProfile("1.8.9")
+	op := convertV20170831AgentPoolOnlyOrchestratorProfile("1.8.9", AzureCloudType)
 	if op == nil {
 		t.Error("OrchestratorProfile expected not to be nil")
 	}

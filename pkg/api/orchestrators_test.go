@@ -59,9 +59,9 @@ func TestOrchestratorUpgradeInfo(t *testing.T) {
 			OrchestratorType:    Kubernetes,
 			OrchestratorVersion: deployedVersion,
 		}
-		v, e := getKubernetesAvailableUpgradeVersions(deployedVersion, common.GetAllSupportedKubernetesVersions(false, false))
+		v, e := getKubernetesAvailableUpgradeVersions(deployedVersion, common.GetAllSupportedKubernetesVersions(false, false, AzureCloudType), AzureCloudType)
 		Expect(e).To(BeNil())
-		orch, e := GetOrchestratorVersionProfile(csOrch, false)
+		orch, e := GetOrchestratorVersionProfile(csOrch, false, AzureCloudType)
 		Expect(e).To(BeNil())
 		Expect(len(orch.Upgrades)).To(Equal(len(v)))
 	}
@@ -69,9 +69,9 @@ func TestOrchestratorUpgradeInfo(t *testing.T) {
 	// The latest version is not upgradable
 	csOrch := &OrchestratorProfile{
 		OrchestratorType:    Kubernetes,
-		OrchestratorVersion: common.GetMaxVersion(common.GetAllSupportedKubernetesVersions(false, false), true),
+		OrchestratorVersion: common.GetMaxVersion(common.GetAllSupportedKubernetesVersions(false, false, AzureCloudType), true),
 	}
-	orch, e := GetOrchestratorVersionProfile(csOrch, false)
+	orch, e := GetOrchestratorVersionProfile(csOrch, false, AzureCloudType)
 	Expect(e).To(BeNil())
 	Expect(len(orch.Upgrades)).To(Equal(0))
 }
@@ -79,22 +79,22 @@ func TestOrchestratorUpgradeInfo(t *testing.T) {
 func TestGetOrchestratorVersionProfileListV20170930(t *testing.T) {
 	RegisterTestingT(t)
 	// v20170930 - all orchestrators
-	list, e := GetOrchestratorVersionProfileListV20170930("", "")
+	list, e := GetOrchestratorVersionProfileListV20170930("", "", AzureCloudType)
 	Expect(e).To(BeNil())
 	numSwarmVersions := 1
 	numDockerCEVersions := 1
 
 	totalNumVersions := numSwarmVersions +
 		numDockerCEVersions +
-		len(common.GetAllSupportedKubernetesVersions(false, false)) +
+		len(common.GetAllSupportedKubernetesVersions(false, false, AzureCloudType)) +
 		len(common.AllDCOSSupportedVersions)
 
 	Expect(len(list.Properties.Orchestrators)).To(Equal(totalNumVersions))
 
 	// v20170930 - kubernetes only
-	list, e = GetOrchestratorVersionProfileListV20170930(common.Kubernetes, "")
+	list, e = GetOrchestratorVersionProfileListV20170930(common.Kubernetes, "", AzureCloudType)
 	Expect(e).To(BeNil())
-	Expect(len(list.Properties.Orchestrators)).To(Equal(len(common.GetAllSupportedKubernetesVersions(false, false))))
+	Expect(len(list.Properties.Orchestrators)).To(Equal(len(common.GetAllSupportedKubernetesVersions(false, false, AzureCloudType))))
 }
 
 func TestKubernetesInfo(t *testing.T) {
@@ -117,7 +117,7 @@ func TestKubernetesInfo(t *testing.T) {
 			OrchestratorVersion: v,
 		}
 
-		_, e := kubernetesInfo(csOrch, false)
+		_, e := kubernetesInfo(csOrch, false, AzureCloudType)
 		Expect(e).NotTo(BeNil())
 	}
 
@@ -140,7 +140,7 @@ func TestDcosInfo(t *testing.T) {
 			OrchestratorVersion: v,
 		}
 
-		_, e := dcosInfo(csOrch, false)
+		_, e := dcosInfo(csOrch, false, AzureCloudType)
 		Expect(e).NotTo(BeNil())
 	}
 
@@ -150,7 +150,7 @@ func TestDcosInfo(t *testing.T) {
 		OrchestratorVersion: common.DCOSDefaultVersion,
 	}
 
-	_, e := dcosInfo(csOrch, false)
+	_, e := dcosInfo(csOrch, false, AzureCloudType)
 	Expect(e).To(BeNil())
 }
 
@@ -167,7 +167,7 @@ func TestSwarmInfo(t *testing.T) {
 			OrchestratorVersion: v,
 		}
 
-		_, e := swarmInfo(csOrch, false)
+		_, e := swarmInfo(csOrch, false, AzureCloudType)
 		Expect(e).NotTo(BeNil())
 	}
 
@@ -177,7 +177,7 @@ func TestSwarmInfo(t *testing.T) {
 		OrchestratorVersion: common.SwarmVersion,
 	}
 
-	_, e := swarmInfo(csOrch, false)
+	_, e := swarmInfo(csOrch, false, AzureCloudType)
 	Expect(e).To(BeNil())
 }
 
@@ -194,7 +194,7 @@ func TestDockerceInfoInfo(t *testing.T) {
 			OrchestratorVersion: v,
 		}
 
-		_, e := dockerceInfo(csOrch, false)
+		_, e := dockerceInfo(csOrch, false, AzureCloudType)
 		Expect(e).NotTo(BeNil())
 	}
 
@@ -204,7 +204,7 @@ func TestDockerceInfoInfo(t *testing.T) {
 		OrchestratorVersion: common.DockerCEVersion,
 	}
 
-	_, e := dockerceInfo(csOrch, false)
+	_, e := dockerceInfo(csOrch, false, AzureCloudType)
 	Expect(e).To(BeNil())
 }
 
@@ -253,7 +253,7 @@ func TestGetKubernetesAvailableUpgradeVersions(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		upgrades, err := getKubernetesAvailableUpgradeVersions(c.version, c.versions)
+		upgrades, err := getKubernetesAvailableUpgradeVersions(c.version, c.versions, AzureCloudType)
 		Expect(err).To(BeNil())
 		Expect(upgrades).To(Equal(c.expectedUpgrades))
 	}

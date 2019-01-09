@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/equality"
 
 	"github.com/Azure/aks-engine/pkg/api/common"
-	"github.com/Azure/aks-engine/pkg/api/v20170701"
+	v20170701 "github.com/Azure/aks-engine/pkg/api/v20170701"
 	"github.com/Azure/aks-engine/pkg/api/vlabs"
 )
 
@@ -92,7 +92,7 @@ func TestOrchestratorVersion(t *testing.T) {
 		},
 	}
 	cs := ConvertV20170701ContainerService(v20170701cs, false)
-	if cs.Properties.OrchestratorProfile.OrchestratorVersion != common.GetDefaultKubernetesVersion(false) {
+	if cs.Properties.OrchestratorProfile.OrchestratorVersion != common.GetDefaultKubernetesVersion(false, AzureCloudType) {
 		t.Fatalf("incorrect OrchestratorVersion '%s'", cs.Properties.OrchestratorProfile.OrchestratorVersion)
 	}
 
@@ -117,7 +117,7 @@ func TestOrchestratorVersion(t *testing.T) {
 		},
 	}
 	cs = ConvertVLabsContainerService(vlabscs, false)
-	if cs.Properties.OrchestratorProfile.OrchestratorVersion != common.GetDefaultKubernetesVersion(false) {
+	if cs.Properties.OrchestratorProfile.OrchestratorVersion != common.GetDefaultKubernetesVersion(false, AzureCloudType) {
 		t.Fatalf("incorrect OrchestratorVersion '%s'", cs.Properties.OrchestratorProfile.OrchestratorVersion)
 	}
 

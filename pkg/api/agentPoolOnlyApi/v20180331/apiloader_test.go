@@ -5,7 +5,7 @@ package v20180331_test
 
 import (
 	"github.com/Azure/aks-engine/pkg/api"
-	"github.com/Azure/aks-engine/pkg/api/agentPoolOnlyApi/v20180331"
+	v20180331 "github.com/Azure/aks-engine/pkg/api/agentPoolOnlyApi/v20180331"
 	"github.com/Azure/aks-engine/pkg/api/common"
 	"github.com/Azure/aks-engine/pkg/i18n"
 	. "github.com/Azure/aks-engine/pkg/test"
@@ -31,8 +31,8 @@ var _ = Describe("v20180331 test suite", func() {
 			Locale: locale,
 		},
 	}
-	k8sVersions := common.GetAllSupportedKubernetesVersions(false, false)
-	defaultK8sVersion := common.GetDefaultKubernetesVersion(false)
+	k8sVersions := common.GetAllSupportedKubernetesVersions(false, false, api.AzureCloudType)
+	defaultK8sVersion := common.GetDefaultKubernetesVersion(false, api.AzureCloudType)
 
 	Context("when networkprofile is nil, enable the addon profile", func() {
 		It("should merge fields properly", func() {

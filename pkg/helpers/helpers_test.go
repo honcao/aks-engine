@@ -424,7 +424,7 @@ func TestGetCloudTargetEnv(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		actual := GetCloudTargetEnv(testcase.input)
+		actual := GetCloudTargetEnv(testcase.input, "")
 		if testcase.expected != actual {
 			t.Errorf("expected GetCloudTargetEnv to return %s, but got %s", testcase.expected, actual)
 		}

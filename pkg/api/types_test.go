@@ -2544,7 +2544,7 @@ func TestFormatAzureProdFQDN(t *testing.T) {
 	dnsPrefix := "santest"
 	var actual []string
 	for _, location := range helpers.GetAzureLocations() {
-		actual = append(actual, FormatAzureProdFQDNByLocation(dnsPrefix, location))
+		actual = append(actual, FormatAzureProdFQDNByLocation(dnsPrefix, location, ""))
 	}
 
 	expected := []string{

@@ -206,28 +206,23 @@ func (t *TemplateGenerator) getMasterCustomData(cs *api.ContainerService, textFi
 func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) template.FuncMap {
 	return template.FuncMap{
 		"IsAzureStackCloud": func() bool {
-			var cloudProfileName string
-			if cs.Properties.CloudProfile != nil {
-				cloudProfileName = cs.Properties.CloudProfile.Name
+			isAzureStackCloud := false
+			if cs != nil && cs.Properties != nil && cs.Properties.CloudProfile != nil {
+
+				var cloudProfileName string
+				if cs.Properties.CloudProfile != nil {
+					cloudProfileName = cs.Properties.CloudProfile.Name
+				}
+				isAzureStackCloud = strings.EqualFold(cloudProfileName, api.AzureStackCloud)
 			}
-			return strings.EqualFold(cloudProfileName, api.AzureStackCloud)
+			return isAzureStackCloud
 		},
 		"IsMultipleMasters": func() bool {
-			return cs.Properties.MasterProfile.Count > 1
-		},
-		"GetIdentitySystem": func() string {
-			if cs.Properties.CloudProfile != nil {
-				if strings.EqualFold(cs.Properties.CloudProfile.IdentitySystem, api.AdfsIdentitySystem) {
-					return api.AdfsIdentitySystem
-				}
+			isMultipleMasters := false
+			if cs != nil && cs.Properties != nil && cs.Properties.MasterProfile != nil {
+				isMultipleMasters = cs.Properties.MasterProfile.Count > 1
 			}
-			return api.AzureADIdentitySystem
-		},
-		"GetAuthMethod": func() string {
-			if cs.Properties.ServicePrincipalProfile.KeyvaultSecretRef != nil {
-				return api.AuthMethodClientCertificate
-			}
-			return api.AuthMethodClientSecret
+			return isMultipleMasters
 		},
 		"IsMasterVirtualMachineScaleSets": func() bool {
 			return cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.IsVirtualMachineScaleSets()

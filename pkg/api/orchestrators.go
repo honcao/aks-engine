@@ -21,14 +21,10 @@ var versionsMap map[string][]string
 
 func init() {
 	funcmap = map[string]orchestratorsFunc{
-		Kubernetes:           kubernetesInfo,
-		DCOS:                 dcosInfo,
-		Swarm:                swarmInfo,
-		SwarmMode:            dockerceInfo,
-		AzureStackKubernetes: kubernetesInfo,
-		AzureStackDCOS:       dcosInfo,
-		AzureStackSwarm:      swarmInfo,
-		AzureStackSwarmMode:  dockerceInfo,
+		Kubernetes: kubernetesInfo,
+		DCOS:       dcosInfo,
+		Swarm:      swarmInfo,
+		SwarmMode:  dockerceInfo,
 	}
 	versionsMap = map[string][]string{
 		Kubernetes:           common.GetAllSupportedKubernetesVersions(true, false, AzureCloudType),

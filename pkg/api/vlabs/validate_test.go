@@ -221,7 +221,7 @@ func Test_OrchestratorProfile_Validate(t *testing.T) {
 					OrchestratorVersion: "1.6.0",
 				},
 			},
-			expectedError: fmt.Sprint("the following OrchestratorProfile configuration is not supported: OrchestratorType: \"Kubernetes\", OrchestratorRelease: \"\", OrchestratorVersion: \"1.6.0\". Please use one of the following versions: ", common.GetAllSupportedKubernetesVersions(false, false)),
+			expectedError: fmt.Sprint("the following OrchestratorProfile configuration is not supported: OrchestratorType: \"Kubernetes\", OrchestratorRelease: \"\", OrchestratorVersion: \"1.6.0\". Please use one of the following versions: ", common.GetAllSupportedKubernetesVersions(false, false, AzureCloudType)),
 		},
 		"kubernetes should not fail on old patch version if update": {
 			properties: &Properties{
@@ -268,7 +268,7 @@ func Test_OrchestratorProfile_Validate(t *testing.T) {
 
 func Test_KubernetesConfig_Validate(t *testing.T) {
 	// Tests that should pass across all versions
-	for _, k8sVersion := range common.GetAllSupportedKubernetesVersions(true, false) {
+	for _, k8sVersion := range common.GetAllSupportedKubernetesVersions(true, false, AzureCloudType) {
 		c := KubernetesConfig{}
 		if err := c.Validate(k8sVersion, false); err != nil {
 			t.Errorf("should not error on empty KubernetesConfig: %v, version %s", err, k8sVersion)
@@ -460,7 +460,7 @@ func Test_KubernetesConfig_Validate(t *testing.T) {
 	}
 
 	// Tests that apply to 1.6 and later releases
-	for _, k8sVersion := range common.GetAllSupportedKubernetesVersions(false, false) {
+	for _, k8sVersion := range common.GetAllSupportedKubernetesVersions(false, false, AzureCloudType) {
 		c := KubernetesConfig{
 			CloudProviderBackoff:   to.BoolPtr(true),
 			CloudProviderRateLimit: to.BoolPtr(true),
@@ -472,7 +472,7 @@ func Test_KubernetesConfig_Validate(t *testing.T) {
 
 	trueVal := true
 	// Tests that apply to 1.8 and later releases
-	for _, k8sVersion := range common.GetVersionsGt(common.GetAllSupportedKubernetesVersions(true, false), "1.8.0", true, true) {
+	for _, k8sVersion := range common.GetVersionsGt(common.GetAllSupportedKubernetesVersions(true, false, AzureCloudType), "1.8.0", true, true) {
 		c := KubernetesConfig{
 			UseCloudControllerManager: &trueVal,
 		}
@@ -1149,7 +1149,7 @@ func Test_Properties_ValidateAddons(t *testing.T) {
 }
 
 func TestWindowsVersions(t *testing.T) {
-	for _, version := range common.GetAllSupportedKubernetesVersions(false, true) {
+	for _, version := range common.GetAllSupportedKubernetesVersions(false, true, AzureCloudType) {
 		p := getK8sDefaultProperties(true)
 		p.OrchestratorProfile.OrchestratorVersion = version
 		if err := p.Validate(false); err != nil {
@@ -1213,7 +1213,7 @@ func TestWindowsVersions(t *testing.T) {
 }
 
 func TestLinuxVersions(t *testing.T) {
-	for _, version := range common.GetAllSupportedKubernetesVersions(false, false) {
+	for _, version := range common.GetAllSupportedKubernetesVersions(false, false, AzureCloudType) {
 		p := getK8sDefaultProperties(false)
 		p.OrchestratorProfile.OrchestratorVersion = version
 		if err := p.Validate(false); err != nil {
@@ -1919,10 +1919,10 @@ func TestProperties_ValidateVNET(t *testing.T) {
 		{
 			name: "Invalid MasterProfile FirstConsecutiveStaticIP when master is VMAS",
 			masterProfile: &MasterProfile{
-				VnetSubnetID:             validVNetSubnetID,
-				Count:                    1,
-				DNSPrefix:                "foo",
-				VMSize:                   "Standard_DS2_v2",
+				VnetSubnetID: validVNetSubnetID,
+				Count:        1,
+				DNSPrefix:    "foo",
+				VMSize:       "Standard_DS2_v2",
 				FirstConsecutiveStaticIP: "10.0.0.invalid",
 			},
 			agentPoolProfiles: []*AgentPoolProfile{
@@ -1980,10 +1980,10 @@ func TestProperties_ValidateVNET(t *testing.T) {
 		{
 			name: "Invalid vnetcidr",
 			masterProfile: &MasterProfile{
-				VnetSubnetID:             validVNetSubnetID,
-				Count:                    1,
-				DNSPrefix:                "foo",
-				VMSize:                   "Standard_DS2_v2",
+				VnetSubnetID: validVNetSubnetID,
+				Count:        1,
+				DNSPrefix:    "foo",
+				VMSize:       "Standard_DS2_v2",
 				FirstConsecutiveStaticIP: "10.0.0.1",
 				VnetCidr:                 "10.1.0.0/invalid",
 			},
