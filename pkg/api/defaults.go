@@ -51,6 +51,10 @@ func (cs *ContainerService) SetPropertiesDefaults(isUpgrade, isScale bool) (bool
 		properties.setHostedMasterProfileDefaults()
 	}
 
+	// Set hosted master profile defaults if this cluster configuration has a hosted control plane
+	if cs.Properties.CustomCloudProfile != nil {
+		properties.setCustomCloudProfileDefaults()
+	}
 	certsGenerated, _, e := properties.setDefaultCerts()
 	if e != nil {
 		return false, e
@@ -505,6 +509,19 @@ func (p *Properties) setHostedMasterProfileDefaults() {
 	p.HostedMasterProfile.Subnet = DefaultKubernetesMasterSubnet
 }
 
+func (p *Properties) setCustomCloudProfileDefaults() {
+
+	//Set default value for ResourceManagerVMDNSSuffix
+	if p.IsAzureStackCloud() {
+		AzureStackCloudSpec.EndpointConfig.ResourceManagerVMDNSSuffix = p.CustomCloudProfile.Enviornment.ResourceManagerVMDNSSuffix
+		AzureCloudSpecEnvMap[AzureStackCloud] = AzureStackCloudSpec
+	}
+	if p.CustomCloudProfile.AzureEnvironmentSpecConfig == nil {
+		customCloudDefault := AzureCloudSpecEnvMap[AzureStackCloud]
+		p.CustomCloudProfile.AzureEnvironmentSpecConfig = &customCloudDefault
+	}
+}
+
 func (p *Properties) setDefaultCerts() (bool, []net.IP, error) {
 	if p.MasterProfile == nil || p.OrchestratorProfile.OrchestratorType != Kubernetes {
 		return false, nil, nil
@@ -518,7 +535,7 @@ func (p *Properties) setDefaultCerts() (bool, []net.IP, error) {
 
 	var azureProdFQDNs []string
 	for _, location := range helpers.GetAzureLocations() {
-		azureProdFQDNs = append(azureProdFQDNs, FormatAzureProdFQDNByLocation(p.MasterProfile.DNSPrefix, location))
+		azureProdFQDNs = append(azureProdFQDNs, FormatAzureProdFQDNByLocation(p.MasterProfile.DNSPrefix, location, p.GetCustomCloudName()))
 	}
 
 	masterExtraFQDNs := append(azureProdFQDNs, p.MasterProfile.SubjectAltNames...)

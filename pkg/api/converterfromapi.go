@@ -1169,28 +1169,80 @@ func convertFeatureFlagsToVLabs(api *FeatureFlags, vlabs *vlabs.FeatureFlags) {
 	vlabs.BlockOutboundInternet = api.BlockOutboundInternet
 }
 
-func convertCloudProfileToVLabs(api *CustomCloudProfile, vlabs *vlabs.CustomCloudProfile) {
+func convertCloudProfileToVLabs(api *CustomCloudProfile, vlabsccp *vlabs.CustomCloudProfile) {
 	if api.Enviornment != nil {
-		vlabs.Enviornment = &azure.Environment{}
-		vlabs.Enviornment.Name = api.Enviornment.Name
-		vlabs.Enviornment.ManagementPortalURL = api.Enviornment.ManagementPortalURL
-		vlabs.Enviornment.PublishSettingsURL = api.Enviornment.PublishSettingsURL
-		vlabs.Enviornment.ServiceManagementEndpoint = api.Enviornment.ServiceManagementEndpoint
-		vlabs.Enviornment.ResourceManagerEndpoint = api.Enviornment.ResourceManagerEndpoint
-		vlabs.Enviornment.ActiveDirectoryEndpoint = api.Enviornment.ActiveDirectoryEndpoint
-		vlabs.Enviornment.GalleryEndpoint = api.Enviornment.GalleryEndpoint
-		vlabs.Enviornment.KeyVaultEndpoint = api.Enviornment.KeyVaultEndpoint
-		vlabs.Enviornment.GraphEndpoint = api.Enviornment.GraphEndpoint
-		vlabs.Enviornment.ServiceBusEndpoint = api.Enviornment.ServiceBusEndpoint
-		vlabs.Enviornment.BatchManagementEndpoint = api.Enviornment.BatchManagementEndpoint
-		vlabs.Enviornment.StorageEndpointSuffix = api.Enviornment.StorageEndpointSuffix
-		vlabs.Enviornment.SQLDatabaseDNSSuffix = api.Enviornment.SQLDatabaseDNSSuffix
-		vlabs.Enviornment.TrafficManagerDNSSuffix = api.Enviornment.TrafficManagerDNSSuffix
-		vlabs.Enviornment.KeyVaultDNSSuffix = api.Enviornment.KeyVaultDNSSuffix
-		vlabs.Enviornment.ServiceBusEndpointSuffix = api.Enviornment.ServiceBusEndpointSuffix
-		vlabs.Enviornment.ServiceManagementVMDNSSuffix = api.Enviornment.ServiceManagementVMDNSSuffix
-		vlabs.Enviornment.ResourceManagerVMDNSSuffix = api.Enviornment.ResourceManagerVMDNSSuffix
-		vlabs.Enviornment.ContainerRegistryDNSSuffix = api.Enviornment.ContainerRegistryDNSSuffix
-		vlabs.Enviornment.TokenAudience = api.Enviornment.TokenAudience
+		vlabsccp.Enviornment = &azure.Environment{}
+		vlabsccp.Enviornment.Name = api.Enviornment.Name
+		vlabsccp.Enviornment.ManagementPortalURL = api.Enviornment.ManagementPortalURL
+		vlabsccp.Enviornment.PublishSettingsURL = api.Enviornment.PublishSettingsURL
+		vlabsccp.Enviornment.ServiceManagementEndpoint = api.Enviornment.ServiceManagementEndpoint
+		vlabsccp.Enviornment.ResourceManagerEndpoint = api.Enviornment.ResourceManagerEndpoint
+		vlabsccp.Enviornment.ActiveDirectoryEndpoint = api.Enviornment.ActiveDirectoryEndpoint
+		vlabsccp.Enviornment.GalleryEndpoint = api.Enviornment.GalleryEndpoint
+		vlabsccp.Enviornment.KeyVaultEndpoint = api.Enviornment.KeyVaultEndpoint
+		vlabsccp.Enviornment.GraphEndpoint = api.Enviornment.GraphEndpoint
+		vlabsccp.Enviornment.ServiceBusEndpoint = api.Enviornment.ServiceBusEndpoint
+		vlabsccp.Enviornment.BatchManagementEndpoint = api.Enviornment.BatchManagementEndpoint
+		vlabsccp.Enviornment.StorageEndpointSuffix = api.Enviornment.StorageEndpointSuffix
+		vlabsccp.Enviornment.SQLDatabaseDNSSuffix = api.Enviornment.SQLDatabaseDNSSuffix
+		vlabsccp.Enviornment.TrafficManagerDNSSuffix = api.Enviornment.TrafficManagerDNSSuffix
+		vlabsccp.Enviornment.KeyVaultDNSSuffix = api.Enviornment.KeyVaultDNSSuffix
+		vlabsccp.Enviornment.ServiceBusEndpointSuffix = api.Enviornment.ServiceBusEndpointSuffix
+		vlabsccp.Enviornment.ServiceManagementVMDNSSuffix = api.Enviornment.ServiceManagementVMDNSSuffix
+		vlabsccp.Enviornment.ResourceManagerVMDNSSuffix = api.Enviornment.ResourceManagerVMDNSSuffix
+		vlabsccp.Enviornment.ContainerRegistryDNSSuffix = api.Enviornment.ContainerRegistryDNSSuffix
+		vlabsccp.Enviornment.TokenAudience = api.Enviornment.TokenAudience
+	}
+
+	if api.AzureEnvironmentSpecConfig != nil {
+		vlabsccp.AzureEnvironmentSpecConfig = &vlabs.AzureEnvironmentSpecConfig{}
+		convertAzureEnvironmentSpecConfigToVLabs(api.AzureEnvironmentSpecConfig, vlabsccp.AzureEnvironmentSpecConfig)
+	}
+
+}
+
+func convertAzureEnvironmentSpecConfigToVLabs(api *AzureEnvironmentSpecConfig, vlabses *vlabs.AzureEnvironmentSpecConfig) {
+	vlabses.CloudName = api.CloudName
+	vlabses.DCOSSpecConfig = vlabs.DCOSSpecConfig{
+		DCOS188BootstrapDownloadURL:     api.DCOSSpecConfig.DCOS188BootstrapDownloadURL,
+		DCOS190BootstrapDownloadURL:     api.DCOSSpecConfig.DCOS190BootstrapDownloadURL,
+		DCOS198BootstrapDownloadURL:     api.DCOSSpecConfig.DCOS198BootstrapDownloadURL,
+		DCOS110BootstrapDownloadURL:     api.DCOSSpecConfig.DCOS110BootstrapDownloadURL,
+		DCOS111BootstrapDownloadURL:     api.DCOSSpecConfig.DCOS111BootstrapDownloadURL,
+		DCOSWindowsBootstrapDownloadURL: api.DCOSSpecConfig.DCOSWindowsBootstrapDownloadURL,
+		DcosRepositoryURL:               api.DCOSSpecConfig.DcosRepositoryURL,
+		DcosClusterPackageListID:        api.DCOSSpecConfig.DcosClusterPackageListID,
+		DcosProviderPackageID:           api.DCOSSpecConfig.DcosProviderPackageID,
+	}
+
+	vlabses.DockerSpecConfig = vlabs.DockerSpecConfig{
+		DockerEngineRepo:         api.DockerSpecConfig.DockerEngineRepo,
+		DockerComposeDownloadURL: api.DockerSpecConfig.DockerComposeDownloadURL,
+	}
+	vlabses.EndpointConfig = vlabs.AzureEndpointConfig{
+		ResourceManagerVMDNSSuffix: api.EndpointConfig.ResourceManagerVMDNSSuffix,
+	}
+	vlabses.KubernetesSpecConfig = vlabs.KubernetesSpecConfig{
+		KubernetesImageBase:              api.KubernetesSpecConfig.KubernetesImageBase,
+		TillerImageBase:                  api.KubernetesSpecConfig.TillerImageBase,
+		ACIConnectorImageBase:            api.KubernetesSpecConfig.ACIConnectorImageBase,
+		NVIDIAImageBase:                  api.KubernetesSpecConfig.NVIDIAImageBase,
+		AzureCNIImageBase:                api.KubernetesSpecConfig.AzureCNIImageBase,
+		EtcdDownloadURLBase:              api.KubernetesSpecConfig.EtcdDownloadURLBase,
+		KubeBinariesSASURLBase:           api.KubernetesSpecConfig.KubeBinariesSASURLBase,
+		WindowsTelemetryGUID:             api.KubernetesSpecConfig.WindowsTelemetryGUID,
+		CNIPluginsDownloadURL:            api.KubernetesSpecConfig.CNIPluginsDownloadURL,
+		VnetCNILinuxPluginsDownloadURL:   api.KubernetesSpecConfig.VnetCNILinuxPluginsDownloadURL,
+		VnetCNIWindowsPluginsDownloadURL: api.KubernetesSpecConfig.VnetCNIWindowsPluginsDownloadURL,
+		ContainerdDownloadURLBase:        api.KubernetesSpecConfig.ContainerdDownloadURLBase,
+	}
+	vlabses.OSImageConfig = map[vlabs.Distro]vlabs.AzureOSImageConfig{}
+	for k, v := range api.OSImageConfig {
+		vlabses.OSImageConfig[vlabs.Distro(string(k))] = vlabs.AzureOSImageConfig{
+			ImageOffer:     v.ImageOffer,
+			ImageSku:       v.ImageSku,
+			ImagePublisher: v.ImagePublisher,
+			ImageVersion:   v.ImageVersion,
+		}
 	}
 }

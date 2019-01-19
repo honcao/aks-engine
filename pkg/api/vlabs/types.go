@@ -499,7 +499,8 @@ type Distro string
 
 // CustomCloudProfile Represents custom cloud profile
 type CustomCloudProfile struct {
-	Enviornment *azure.Environment `json:"environment,omitempty"`
+	Enviornment                *azure.Environment          `json:"environment,omitempty"`
+	AzureEnvironmentSpecConfig *AzureEnvironmentSpecConfig `json:"azureEnvironmentSpecConfig,omitempty"`
 }
 
 // HasWindows returns true if the cluster contains windows

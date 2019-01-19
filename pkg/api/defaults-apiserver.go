@@ -36,7 +36,7 @@ func (cs *ContainerService) setAPIServerConfig() {
 		"--service-cluster-ip-range":    o.KubernetesConfig.ServiceCIDR,
 		"--storage-backend":             o.GetAPIServerEtcdAPIVersion(),
 		"--enable-bootstrap-token-auth": "true",
-		"--v":                           "4",
+		"--v": "4",
 	}
 	// if using local etcd server then we need the ca file
 	/*this ugly if statement is made this way, because this function is used in a test that does not pass correct data structure */
@@ -80,7 +80,7 @@ func (cs *ContainerService) setAPIServerConfig() {
 		defaultAPIServerConfig["--oidc-groups-claim"] = "groups"
 		defaultAPIServerConfig["--oidc-client-id"] = "spn:" + cs.Properties.AADProfile.ServerAppID
 		issuerHost := "sts.windows.net"
-		if helpers.GetCloudTargetEnv(cs.Location) == "AzureChinaCloud" {
+		if helpers.GetCloudTargetEnv(cs.Location, cs.Properties.GetCustomCloudName()) == "AzureChinaCloud" {
 			issuerHost = "sts.chinacloudapi.cn"
 		}
 		defaultAPIServerConfig["--oidc-issuer-url"] = "https://" + issuerHost + "/" + cs.Properties.AADProfile.TenantID + "/"

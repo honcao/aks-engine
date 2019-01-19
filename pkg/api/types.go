@@ -4,8 +4,10 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"hash/fnv"
+	"log"
 	"math/rand"
 	"net"
 	neturl "net/url"
@@ -673,7 +675,8 @@ type V20180331ARMManagedContainerService struct {
 
 // CustomCloudProfile Represents custom cloud profile
 type CustomCloudProfile struct {
-	Enviornment *azure.Environment `json:"environment,omitempty"`
+	Enviornment                *azure.Environment          `json:"environment,omitempty"`
+	AzureEnvironmentSpecConfig *AzureEnvironmentSpecConfig `json:"azureEnvironmentSpecConfig,omitempty"`
 }
 
 // HasWindows returns true if the cluster contains windows
@@ -968,6 +971,42 @@ func (p *Properties) GetAzureCNICidr() string {
 		masqCNIIP = DefaultCNICIDR
 	}
 	return masqCNIIP
+}
+
+// IsAzureStackCloud return true if the cloud is AzureStack
+func (p *Properties) IsAzureStackCloud() bool {
+	var cloudProfileName string
+	if p.CustomCloudProfile != nil {
+		if p.CustomCloudProfile.Enviornment != nil {
+			cloudProfileName = p.CustomCloudProfile.Enviornment.Name
+		}
+	}
+	return strings.EqualFold(cloudProfileName, AzureStackCloud)
+}
+
+// GetCustomEnvironmentJSON return the JSON format string for custom environment
+func (p *Properties) GetCustomEnvironmentJSON() string {
+	var environmentJSON string
+	if p.IsAzureStackCloud() {
+		bytes, err := json.Marshal(p.CustomCloudProfile.Enviornment)
+		if err != nil {
+			log.Fatalf("Could not serialize Enviornment object - %s", err.Error())
+		}
+		environmentJSON = string(bytes)
+		environmentJSON = strings.Replace(environmentJSON, "\"", "\\\"", -1)
+	}
+	return environmentJSON
+}
+
+// GetCustomCloudName returns name of environment if customCloudProfile is provided, returns empty string if customCloudProfile is empty.
+// Because customCloudProfile is empty for deployment is AzurePublicCloud, AzureChinaCloud,AzureGermanCloud,AzureUSGovernmentCloud,
+// the return value will be empty string for those clouds
+func (p *Properties) GetCustomCloudName() string {
+	var cloudProfileName string
+	if p.IsAzureStackCloud() {
+		cloudProfileName = p.CustomCloudProfile.Enviornment.Name
+	}
+	return cloudProfileName
 }
 
 // IsCustomVNET returns true if the customer brought their own VNET
@@ -1410,18 +1449,18 @@ func (f *FeatureFlags) IsFeatureEnabled(feature string) bool {
 //for example: if the target is the public azure, then the default container image url should be k8s.gcr.io/...
 //if the target is azure china, then the default container image should be mirror.azure.cn:5000/google_container/...
 func (cs *ContainerService) GetCloudSpecConfig() AzureEnvironmentSpecConfig {
-	targetEnv := helpers.GetCloudTargetEnv(cs.Location)
+	targetEnv := helpers.GetCloudTargetEnv(cs.Location, cs.Properties.GetCustomCloudName())
 	return AzureCloudSpecEnvMap[targetEnv]
 }
 
 // GetAzureProdFQDN returns the formatted FQDN string for a given apimodel.
 func (cs *ContainerService) GetAzureProdFQDN() string {
-	return FormatAzureProdFQDNByLocation(cs.Properties.MasterProfile.DNSPrefix, cs.Location)
+	return FormatAzureProdFQDNByLocation(cs.Properties.MasterProfile.DNSPrefix, cs.Location, cs.Properties.GetCustomCloudName())
 }
 
 // FormatAzureProdFQDNByLocation constructs an Azure prod fqdn
-func FormatAzureProdFQDNByLocation(fqdnPrefix string, location string) string {
-	targetEnv := helpers.GetCloudTargetEnv(location)
+func FormatAzureProdFQDNByLocation(fqdnPrefix string, location string, cloudName string) string {
+	targetEnv := helpers.GetCloudTargetEnv(location, cloudName)
 	FQDNFormat := AzureCloudSpecEnvMap[targetEnv].EndpointConfig.ResourceManagerVMDNSSuffix
 	return fmt.Sprintf("%s.%s."+FQDNFormat, fqdnPrefix, location)
 }
