@@ -511,15 +511,103 @@ func (p *Properties) setHostedMasterProfileDefaults() {
 
 func (p *Properties) setCustomCloudProfileDefaults() {
 
-	//Set default value for ResourceManagerVMDNSSuffix
 	if p.IsAzureStackCloud() {
+		//Set default value for ResourceManagerVMDNSSuffix
 		AzureStackCloudSpec.EndpointConfig.ResourceManagerVMDNSSuffix = p.CustomCloudProfile.Enviornment.ResourceManagerVMDNSSuffix
 		AzureCloudSpecEnvMap[AzureStackCloud] = AzureStackCloudSpec
+
+		if p.CustomCloudProfile.AzureEnvironmentSpecConfig != nil {
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.CloudName) != 0 {
+				AzureStackCloudSpec.CloudName = p.CustomCloudProfile.AzureEnvironmentSpecConfig.CloudName
+			}
+
+			// DockerSpecConfig
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.DockerSpecConfig.DockerComposeDownloadURL) != 0 {
+				AzureStackCloudSpec.DockerSpecConfig.DockerComposeDownloadURL = p.CustomCloudProfile.AzureEnvironmentSpecConfig.DockerSpecConfig.DockerComposeDownloadURL
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.DockerSpecConfig.DockerEngineRepo) != 0 {
+				AzureStackCloudSpec.DockerSpecConfig.DockerEngineRepo = p.CustomCloudProfile.AzureEnvironmentSpecConfig.DockerSpecConfig.DockerEngineRepo
+			}
+
+			//KubernetesSpecConfig
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.ACIConnectorImageBase) != 0 {
+				AzureStackCloudSpec.KubernetesSpecConfig.ACIConnectorImageBase = p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.ACIConnectorImageBase
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.AzureCNIImageBase) != 0 {
+				AzureStackCloudSpec.KubernetesSpecConfig.AzureCNIImageBase = p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.AzureCNIImageBase
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.CNIPluginsDownloadURL) != 0 {
+				AzureStackCloudSpec.KubernetesSpecConfig.CNIPluginsDownloadURL = p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.CNIPluginsDownloadURL
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.ContainerdDownloadURLBase) != 0 {
+				AzureStackCloudSpec.KubernetesSpecConfig.ContainerdDownloadURLBase = p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.ContainerdDownloadURLBase
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.EtcdDownloadURLBase) != 0 {
+				AzureStackCloudSpec.KubernetesSpecConfig.EtcdDownloadURLBase = p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.EtcdDownloadURLBase
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.KubeBinariesSASURLBase) != 0 {
+				AzureStackCloudSpec.KubernetesSpecConfig.KubeBinariesSASURLBase = p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.KubeBinariesSASURLBase
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.KubernetesImageBase) != 0 {
+				AzureStackCloudSpec.KubernetesSpecConfig.KubernetesImageBase = p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.KubernetesImageBase
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.NVIDIAImageBase) != 0 {
+				AzureStackCloudSpec.KubernetesSpecConfig.NVIDIAImageBase = p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.NVIDIAImageBase
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.TillerImageBase) != 0 {
+				AzureStackCloudSpec.KubernetesSpecConfig.TillerImageBase = p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.TillerImageBase
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.VnetCNILinuxPluginsDownloadURL) != 0 {
+				AzureStackCloudSpec.KubernetesSpecConfig.VnetCNILinuxPluginsDownloadURL = p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.VnetCNILinuxPluginsDownloadURL
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.VnetCNIWindowsPluginsDownloadURL) != 0 {
+				AzureStackCloudSpec.KubernetesSpecConfig.VnetCNIWindowsPluginsDownloadURL = p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.VnetCNIWindowsPluginsDownloadURL
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.WindowsTelemetryGUID) != 0 {
+				AzureStackCloudSpec.KubernetesSpecConfig.WindowsTelemetryGUID = p.CustomCloudProfile.AzureEnvironmentSpecConfig.KubernetesSpecConfig.WindowsTelemetryGUID
+			}
+			//DCOSSpecConfig
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DCOS110BootstrapDownloadURL) != 0 {
+				AzureStackCloudSpec.DCOSSpecConfig.DCOS110BootstrapDownloadURL = p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DCOS110BootstrapDownloadURL
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DCOS111BootstrapDownloadURL) != 0 {
+				AzureStackCloudSpec.DCOSSpecConfig.DCOS111BootstrapDownloadURL = p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DCOS111BootstrapDownloadURL
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DCOS188BootstrapDownloadURL) != 0 {
+				AzureStackCloudSpec.DCOSSpecConfig.DCOS188BootstrapDownloadURL = p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DCOS188BootstrapDownloadURL
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DCOS190BootstrapDownloadURL) != 0 {
+				AzureStackCloudSpec.DCOSSpecConfig.DCOS190BootstrapDownloadURL = p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DCOS190BootstrapDownloadURL
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DCOS198BootstrapDownloadURL) != 0 {
+				AzureStackCloudSpec.DCOSSpecConfig.DCOS198BootstrapDownloadURL = p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DCOS198BootstrapDownloadURL
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DCOSWindowsBootstrapDownloadURL) != 0 {
+				AzureStackCloudSpec.DCOSSpecConfig.DCOSWindowsBootstrapDownloadURL = p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DCOSWindowsBootstrapDownloadURL
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DcosClusterPackageListID) != 0 {
+				AzureStackCloudSpec.DCOSSpecConfig.DcosClusterPackageListID = p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DcosClusterPackageListID
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DcosProviderPackageID) != 0 {
+				AzureStackCloudSpec.DCOSSpecConfig.DcosProviderPackageID = p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DcosProviderPackageID
+			}
+			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DcosRepositoryURL) != 0 {
+				AzureStackCloudSpec.DCOSSpecConfig.DcosRepositoryURL = p.CustomCloudProfile.AzureEnvironmentSpecConfig.DCOSSpecConfig.DcosRepositoryURL
+			}
+
+			//OSImageConfig
+			for k, v := range p.CustomCloudProfile.AzureEnvironmentSpecConfig.OSImageConfig {
+				AzureStackCloudSpec.OSImageConfig[k] = v
+			}
+
+			AzureCloudSpecEnvMap[AzureStackCloud] = AzureStackCloudSpec
+		} else {
+			customCloudDefault := AzureCloudSpecEnvMap[AzureStackCloud]
+			p.CustomCloudProfile.AzureEnvironmentSpecConfig = &customCloudDefault
+		}
+
 	}
-	if p.CustomCloudProfile.AzureEnvironmentSpecConfig == nil {
-		customCloudDefault := AzureCloudSpecEnvMap[AzureStackCloud]
-		p.CustomCloudProfile.AzureEnvironmentSpecConfig = &customCloudDefault
-	}
+
 }
 
 func (p *Properties) setDefaultCerts() (bool, []net.IP, error) {
