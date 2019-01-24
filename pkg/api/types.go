@@ -773,6 +773,26 @@ func (p *Properties) GetAgentVMPrefix(a *AgentPoolProfile) string {
 	return vmPrefix
 }
 
+// AnyAgentUsesVirtualMachineScaleSets checks whether any of the agents in the AgentPool use VMSS or not
+func (p *Properties) AnyAgentUsesVirtualMachineScaleSets() bool {
+	for _, agentProfile := range p.AgentPoolProfiles {
+		if agentProfile.IsVirtualMachineScaleSets() {
+			return true
+		}
+	}
+	return false
+}
+
+// AnyAgentUsesAvailabilitySets checks whether any of the agents in the AgentPool use VMSS or not
+func (p *Properties) AnyAgentUsesAvailabilitySets() bool {
+	for _, agentProfile := range p.AgentPoolProfiles {
+		if agentProfile.IsAvailabilitySets() {
+			return true
+		}
+	}
+	return false
+}
+
 // GetMasterVMPrefix returns the prefix of master VMs
 func (p *Properties) GetMasterVMPrefix() string {
 	return p.K8sOrchestratorName() + "-master-" + p.GetClusterID() + "-"

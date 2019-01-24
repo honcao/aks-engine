@@ -4,6 +4,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -187,7 +188,11 @@ func (gc *generateCmd) run() error {
 		log.Fatalf("error in SetPropertiesDefaults template %s: %s", gc.apimodelPath, err.Error())
 		os.Exit(1)
 	}
-	template, parameters, err := templateGenerator.GenerateTemplate(gc.containerService, engine.DefaultGeneratorCode, BuildTag)
+	bts, _ := json.Marshal(gc.containerService)
+
+	log.Info(string(bts))
+
+	template, parameters, err := templateGenerator.GenerateTemplateV2(gc.containerService, engine.DefaultGeneratorCode, BuildTag)
 	if err != nil {
 		log.Fatalf("error generating template %s: %s", gc.apimodelPath, err.Error())
 		os.Exit(1)
