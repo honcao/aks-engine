@@ -55,7 +55,7 @@ func (cs *ContainerService) SetPropertiesDefaults(isUpgrade, isScale bool) (bool
 	if cs.Properties.CustomCloudProfile != nil {
 		properties.setCustomCloudProfileDefaults()
 	}
-	certsGenerated, _, e := properties.setDefaultCerts()
+	certsGenerated, _, e := cs.setDefaultCerts()
 	if e != nil {
 		return false, e
 	}
@@ -589,7 +589,9 @@ func (p *Properties) setCustomCloudProfileDefaults() {
 	}
 }
 
-func (p *Properties) setDefaultCerts() (bool, []net.IP, error) {
+func (cs *ContainerService) setDefaultCerts() (bool, []net.IP, error) {
+
+	p := cs.Properties
 	if p.MasterProfile == nil || p.OrchestratorProfile.OrchestratorType != Kubernetes {
 		return false, nil, nil
 	}
@@ -600,8 +602,15 @@ func (p *Properties) setDefaultCerts() (bool, []net.IP, error) {
 		return false, nil, nil
 	}
 
+	var allLocations []string
+	if cs.Properties.IsAzureStackCloud() {
+		allLocations = []string{cs.Location}
+	} else {
+		allLocations = helpers.GetAzureLocations()
+	}
+
 	var azureProdFQDNs []string
-	for _, location := range helpers.GetAzureLocations() {
+	for _, location := range allLocations {
 		azureProdFQDNs = append(azureProdFQDNs, FormatAzureProdFQDNByLocation(p.MasterProfile.DNSPrefix, location, p.GetCustomCloudName()))
 	}
 
