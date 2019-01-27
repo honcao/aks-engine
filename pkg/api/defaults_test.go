@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/to"
@@ -1474,6 +1475,37 @@ func TestSetCustomCloudProfileDefaults(t *testing.T) {
 	if !reflect.DeepEqual(AzureCloudSpecEnvMap[AzureStackCloud], customCloudSpec) {
 		t.Errorf("setCustomCloudProfileDefaults(): did not set AzureCloudSpecEnvMap[AzureStackCloud] with customer input")
 	}
+
+	// Test that the default values are set for IdentitySystem and AuthenticationMethod if they are not in the configuration
+	mockCSAuth := getMockBaseContainerService("1.11.6")
+	mockCSPAuth := getMockPropertiesWithCustomCloudProfile("azurestackcloud", true, true, true)
+	mockCSPAuth.CustomCloudProfile.IdentitySystem = ""
+	mockCSPAuth.CustomCloudProfile.AuthenticationMethod = ""
+	mockCSAuth.Properties.CustomCloudProfile = mockCSPAuth.CustomCloudProfile
+	mockCSAuth.SetPropertiesDefaults(false, false)
+
+	if !strings.EqualFold(mockCSAuth.Properties.CustomCloudProfile.AuthenticationMethod, ClientSecret) {
+		t.Errorf("setCustomCloudProfileDefaults(): AuthenticationMethod string not the expected default value, got %s, expected %s", mockCSAuth.Properties.CustomCloudProfile.AuthenticationMethod, ClientSecret)
+	}
+	if !strings.EqualFold(mockCSAuth.Properties.CustomCloudProfile.IdentitySystem, AzureAD) {
+		t.Errorf("setCustomCloudProfileDefaults(): IdentitySystem string not the expected default value, got %s, expected %s", mockCSAuth.Properties.CustomCloudProfile.IdentitySystem, AzureAD)
+	}
+
+	// Test that the custom input values are not overiwrited if they are in the configuration
+	mockCSI := getMockBaseContainerService("1.11.6")
+	mockCSPI := getMockPropertiesWithCustomCloudProfile("azurestackcloud", true, true, true)
+	mockCSPI.CustomCloudProfile.IdentitySystem = ADFS
+	mockCSPI.CustomCloudProfile.AuthenticationMethod = ClientCertificate
+	mockCSI.Properties.CustomCloudProfile = mockCSPI.CustomCloudProfile
+	mockCS.SetPropertiesDefaults(false, false)
+
+	if !strings.EqualFold(mockCSI.Properties.CustomCloudProfile.AuthenticationMethod, ClientCertificate) {
+		t.Errorf("setCustomCloudProfileDefaults(): AuthenticationMethod string from customer not the expected default value, got %s, expected %s", mockCSI.Properties.CustomCloudProfile.AuthenticationMethod, ClientCertificate)
+	}
+	if !strings.EqualFold(mockCSI.Properties.CustomCloudProfile.IdentitySystem, ADFS) {
+		t.Errorf("setCustomCloudProfileDefaults(): IdentitySystem string from customer not the expected default value, got %s, expected %s", mockCSI.Properties.CustomCloudProfile.IdentitySystem, ADFS)
+	}
+
 }
 
 func TestCustomCloudLocation(t *testing.T) {

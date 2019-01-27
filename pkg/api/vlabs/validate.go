@@ -1317,6 +1317,12 @@ func (a *Properties) validateCustomCloudProfile() error {
 		if len(a.CustomCloudProfile.Environment.ResourceManagerVMDNSSuffix) == 0 {
 			return errors.New("resourceManagerVMDNSSuffix needs to be specified when Environment is provided")
 		}
+		if len(a.CustomCloudProfile.AuthenticationMethod) != 0 && !(strings.EqualFold(a.CustomCloudProfile.AuthenticationMethod, ClientSecret) || strings.EqualFold(a.CustomCloudProfile.AuthenticationMethod, ClientCertificate)) {
+			return errors.New(fmt.Sprintf("authenticationMethod allowed values are '%s' and '%s'", ClientCertificate, ClientSecret))
+		}
+		if len(a.CustomCloudProfile.IdentitySystem) != 0 && !(strings.EqualFold(a.CustomCloudProfile.IdentitySystem, AzureAD) || strings.EqualFold(a.CustomCloudProfile.IdentitySystem, ADFS)) {
+			return errors.New(fmt.Sprintf("identitySystem allowed values are '%s' and '%s'", AzureAD, ADFS))
+		}
 	}
 	return nil
 }

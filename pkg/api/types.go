@@ -689,6 +689,8 @@ type V20180331ARMManagedContainerService struct {
 type CustomCloudProfile struct {
 	Environment                *azure.Environment          `json:"environment,omitempty"`
 	AzureEnvironmentSpecConfig *AzureEnvironmentSpecConfig `json:"azureEnvironmentSpecConfig,omitempty"`
+	IdentitySystem             string                      `json:"identitySystem,omitempty"`
+	AuthenticationMethod       string                      `json:"authenticationMethod,omitempty"`
 }
 
 // HasWindows returns true if the cluster contains windows
@@ -1394,6 +1396,30 @@ func (p *Properties) GetCustomCloudName() string {
 		cloudProfileName = p.CustomCloudProfile.Environment.Name
 	}
 	return cloudProfileName
+}
+
+// GetAuthenticationMethod returns authentication method which k8s azure cloud provider will use
+// For AzurePublicCloud,AzureChinaCloud,azureGermanCloud,azureUSGovernmentCloud, it will be always be client_secret
+// For AzureStackCloud, if it is specifiled in configuration, the value will be used, if not ,the default value is client_secret,
+func (p *Properties) GetAuthenticationMethod() string {
+	if p.IsAzureStackCloud() {
+		if strings.EqualFold(p.CustomCloudProfile.AuthenticationMethod, ClientCertificate) {
+			return ClientCertificate
+		}
+	}
+	return ClientSecret
+}
+
+// GetIdentitySystem returns identity system method for azure stack.
+// For AzurePublicCloud,AzureChinaCloud,azureGermanCloud,azureUSGovernmentCloud, it will be always be AzureAD
+// For AzureStackCloud, if it is specifiled in configuration, the value will be used, if not ,the default value is AzureAD,
+func (p *Properties) GetIdentitySystem() string {
+	if p.IsAzureStackCloud() {
+		if strings.EqualFold(p.CustomCloudProfile.IdentitySystem, ADFS) {
+			return ADFS
+		}
+	}
+	return AzureAD
 }
 
 func getDefaultNVIDIADevicePluginEnabled(p *Properties) bool {

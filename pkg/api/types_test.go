@@ -2894,6 +2894,88 @@ func TestGetCustomCloudName(t *testing.T) {
 	}
 }
 
+func TestGetAuthenticationMethod(t *testing.T) {
+	notAzureStack := getMockPropertiesWithCustomCloudProfile("azurestackcloud1", true, true, true)
+	notAzureStack.CustomCloudProfile.AuthenticationMethod = ClientCertificate
+
+	asfsAzureStack := getMockPropertiesWithCustomCloudProfile("azurestackcloud", true, true, true)
+	asfsAzureStack.CustomCloudProfile.AuthenticationMethod = ClientCertificate
+
+	testcases := []struct {
+		name       string
+		properties Properties
+		expected   string
+	}{
+		{
+			"no customCloudProfile",
+			getMockPropertiesWithCustomCloudProfile("azurestackcloud", false, false, false),
+			ClientSecret,
+		},
+		{
+			"not azurestack",
+			notAzureStack,
+			ClientSecret,
+		},
+		{
+			"ADFS azurestack",
+			asfsAzureStack,
+			ClientCertificate,
+		},
+		{
+			"AzureAD azurestack",
+			getMockPropertiesWithCustomCloudProfile("azurestackcloud", true, true, true),
+			ClientSecret,
+		},
+	}
+	for _, testcase := range testcases {
+		actual := testcase.properties.GetAuthenticationMethod()
+		if testcase.expected != actual {
+			t.Errorf("Test \"%s\": expected TestGetAuthenticationMethod() to return %s, but got %s . ", testcase.name, testcase.expected, actual)
+		}
+	}
+}
+
+func TestGetIdentitySystem(t *testing.T) {
+	notAzureStack := getMockPropertiesWithCustomCloudProfile("azurestackcloud1", true, true, true)
+	notAzureStack.CustomCloudProfile.IdentitySystem = ADFS
+
+	asfsAzureStack := getMockPropertiesWithCustomCloudProfile("azurestackcloud", true, true, true)
+	asfsAzureStack.CustomCloudProfile.IdentitySystem = ADFS
+
+	testcases := []struct {
+		name       string
+		properties Properties
+		expected   string
+	}{
+		{
+			"no customCloudProfile",
+			getMockPropertiesWithCustomCloudProfile("azurestackcloud", false, false, false),
+			AzureAD,
+		},
+		{
+			"not azurestack",
+			notAzureStack,
+			AzureAD,
+		},
+		{
+			"ADFS azurestack",
+			asfsAzureStack,
+			ADFS,
+		},
+		{
+			"AzureAD azurestack",
+			getMockPropertiesWithCustomCloudProfile("azurestackcloud", true, true, true),
+			AzureAD,
+		},
+	}
+	for _, testcase := range testcases {
+		actual := testcase.properties.GetIdentitySystem()
+		if testcase.expected != actual {
+			t.Errorf("Test \"%s\": expected TestGetAuthenticationMethod() to return %s, but got %s . ", testcase.name, testcase.expected, actual)
+		}
+	}
+}
+
 func TestGetCustomEnvironmentJSON(t *testing.T) {
 	testcases := []struct {
 		name       string
@@ -2967,6 +3049,8 @@ func getMockPropertiesWithCustomCloudProfile(name string, hasCustomCloudProfile,
 		if hasAzureEnvironmentSpecConfig {
 			p.CustomCloudProfile.AzureEnvironmentSpecConfig = &AzureStackCloudSpec
 		}
+		p.CustomCloudProfile.IdentitySystem = AzureAD
+		p.CustomCloudProfile.AuthenticationMethod = ClientSecret
 	}
 	return p
 }

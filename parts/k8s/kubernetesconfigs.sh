@@ -183,6 +183,41 @@ configureK8s() {
     "providerKeyVersion": ""
 }
 EOF
+
+    echo "AUTHENTICATION_METHOD: ${AUTHENTICATION_METHOD}"
+    echo "IDENTITY_SYSTEM: ${IDENTITY_SYSTEM}"
+    # When AUTHENTICATION_METHOD is client_certificate, the certificate is stored into key valut, 
+    # And SERVICE_PRINCIPAL_CLIENT_SECRET will be the following json payload with based64 encode
+    #{
+    #    "data": "$pfxAsBase64EncodedString",
+    #    "dataType" :"pfx",
+    #    "password": "$password"
+    #}
+    if [[ "${AUTHENTICATION_METHOD,,}" == "client_certificate"  ]]; then
+        SERVICE_PRINCIPAL_CLIENT_SECRET_DECODED=`echo ${SERVICE_PRINCIPAL_CLIENT_SECRET} | base64 --decode`
+        SERVICE_PRINCIPAL_CLIENT_SECRET_CERT=`echo $SERVICE_PRINCIPAL_CLIENT_SECRET_DECODED | jq .data`
+        SERVICE_PRINCIPAL_CLIENT_SECRET_PASSWORD=`echo $SERVICE_PRINCIPAL_CLIENT_SECRET_DECODED | jq .password`
+        
+        # trim the starting and ending "
+        SERVICE_PRINCIPAL_CLIENT_SECRET_CERT=${SERVICE_PRINCIPAL_CLIENT_SECRET_CERT#"\""} 
+        SERVICE_PRINCIPAL_CLIENT_SECRET_CERT=${SERVICE_PRINCIPAL_CLIENT_SECRET_CERT%"\""} 
+
+        SERVICE_PRINCIPAL_CLIENT_SECRET_PASSWORD=${SERVICE_PRINCIPAL_CLIENT_SECRET_PASSWORD#"\""} 
+        SERVICE_PRINCIPAL_CLIENT_SECRET_PASSWORD=${SERVICE_PRINCIPAL_CLIENT_SECRET_PASSWORD%"\""}
+
+        KUBERNETES_FILE_DIR=$(dirname "${AZURE_JSON_PATH}")
+        K8S_CLIENT_CERT_PATH="${KUBERNETES_FILE_DIR}/k8s_auth_certificate.pfx"
+        echo $SERVICE_PRINCIPAL_CLIENT_SECRET_CERT | base64 --decode > $K8S_CLIENT_CERT_PATH
+        echo `cat "${AZURE_JSON_PATH}" | \
+            jq --arg K8S_CLIENT_CERT_PATH ${K8S_CLIENT_CERT_PATH} '. + {aadClientCertPath:($K8S_CLIENT_CERT_PATH)}' | \
+            jq --arg SERVICE_PRINCIPAL_CLIENT_SECRET_PASSWORD ${SERVICE_PRINCIPAL_CLIENT_SECRET_PASSWORD} '. + {aadClientCertPassword:($SERVICE_PRINCIPAL_CLIENT_SECRET_PASSWORD)}' |\
+            jq 'del(.aadClientSecret)'` > ${AZURE_JSON_PATH}
+    fi
+
+    if [[ "${IDENTITY_SYSTEM,,}" == "adfs"  ]]; then
+        echo `cat "${AZURE_JSON_PATH}" | jq --arg IDENTITY_SYSTEM ${IDENTITY_SYSTEM} '. + {identitySystem:($IDENTITY_SYSTEM)}'` > ${AZURE_JSON_PATH}
+    fi
+
     set -x
     if [[ ! -z "${MASTER_NODE}" ]]; then
         if [[ "${ENABLE_AGGREGATED_APIS}" = True ]]; then

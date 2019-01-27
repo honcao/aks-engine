@@ -519,6 +519,14 @@ func (p *Properties) setCustomCloudProfileDefaults() {
 		AzureStackCloudSpec.EndpointConfig.ResourceManagerVMDNSSuffix = p.CustomCloudProfile.Environment.ResourceManagerVMDNSSuffix
 		AzureCloudSpecEnvMap[AzureStackCloud] = AzureStackCloudSpec
 
+		if len(p.CustomCloudProfile.IdentitySystem) == 0 {
+			p.CustomCloudProfile.IdentitySystem = AzureAD
+		}
+
+		if len(p.CustomCloudProfile.AuthenticationMethod) == 0 {
+			p.CustomCloudProfile.AuthenticationMethod = ClientSecret
+		}
+
 		// Use the custom input to overwrite the default values in AzureStackCloudSpec
 		if p.CustomCloudProfile.AzureEnvironmentSpecConfig != nil {
 			if len(p.CustomCloudProfile.AzureEnvironmentSpecConfig.CloudName) != 0 {
