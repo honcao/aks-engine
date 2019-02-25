@@ -26,6 +26,33 @@ type VirtualMachineListResultPage interface {
 	Values() []compute.VirtualMachine
 }
 
+// VirtualMachineScaleSetListResultPage is an interface for compute.VirtualMachineScaleSetListResultPage to aid in mocking
+type VirtualMachineScaleSetListResultPage interface {
+	NextWithContext(ctx context.Context) (err error)
+	Next() error
+	NotDone() bool
+	Response() compute.VirtualMachineScaleSetListResult
+	Values() []compute.VirtualMachineScaleSet
+}
+
+// VirtualMachineScaleSetVMListResultPage is an interface for compute.VirtualMachineScaleSetVMListResultPage to aid in mocking
+type VirtualMachineScaleSetVMListResultPage interface {
+	Next() error
+	NextWithContext(ctx context.Context) (err error)
+	NotDone() bool
+	Response() compute.VirtualMachineScaleSetVMListResult
+	Values() []compute.VirtualMachineScaleSetVM
+}
+
+// ProviderListResultPage is an interface for resources.ProviderListResultPage to aid in mocking
+type ProviderListResultPage interface {
+	Next() error
+	NextWithContext(ctx context.Context) (err error)
+	NotDone() bool
+	Response() resources.ProviderListResult
+	Values() []resources.Provider
+}
+
 // DeploymentOperationsListResultPage is an interface for resources.DeploymentOperationsListResultPage to aid in mocking
 type DeploymentOperationsListResultPage interface {
 	Next() error
@@ -74,10 +101,10 @@ type AKSEngineClient interface {
 	DeleteVirtualMachine(ctx context.Context, resourceGroup, name string) error
 
 	// ListVirtualMachineScaleSets lists the vmss resources in the resource group
-	ListVirtualMachineScaleSets(ctx context.Context, resourceGroup string) (compute.VirtualMachineScaleSetListResultPage, error)
+	ListVirtualMachineScaleSets(ctx context.Context, resourceGroup string) (VirtualMachineScaleSetListResultPage, error)
 
 	// ListVirtualMachineScaleSetVMs lists the virtual machines contained in a vmss
-	ListVirtualMachineScaleSetVMs(ctx context.Context, resourceGroup, virtualMachineScaleSet string) (compute.VirtualMachineScaleSetVMListResultPage, error)
+	ListVirtualMachineScaleSetVMs(ctx context.Context, resourceGroup, virtualMachineScaleSet string) (VirtualMachineScaleSetVMListResultPage, error)
 
 	// DeleteVirtualMachineScaleSetVM deletes a VM in a VMSS
 	DeleteVirtualMachineScaleSetVM(ctx context.Context, resourceGroup, virtualMachineScaleSet, instanceID string) error
@@ -125,7 +152,7 @@ type AKSEngineClient interface {
 
 	GetKubernetesClient(masterURL, kubeConfig string, interval, timeout time.Duration) (KubernetesClient, error)
 
-	ListProviders(ctx context.Context) (resources.ProviderListResultPage, error)
+	ListProviders(ctx context.Context) (ProviderListResultPage, error)
 
 	// DEPLOYMENTS
 
