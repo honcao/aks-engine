@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/Azure/aks-engine/pkg/armhelpers"
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest"
@@ -53,7 +54,7 @@ func (az *AzureClient) DeleteRoleAssignmentByID(ctx context.Context, roleAssignm
 }
 
 // ListRoleAssignmentsForPrincipal (e.g. a VM) via the scope and the unique identifier of the principal
-func (az *AzureClient) ListRoleAssignmentsForPrincipal(ctx context.Context, scope string, principalID string) (RoleAssignmentListResultPage, error) {
+func (az *AzureClient) ListRoleAssignmentsForPrincipal(ctx context.Context, scope string, principalID string) (armhelpers.RoleAssignmentListResultPage, error) {
 	page, err := az.authorizationClient.ListForScope(ctx, scope, fmt.Sprintf("principalId eq '%s'", principalID))
 	return &page, err
 }

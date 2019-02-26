@@ -69,6 +69,15 @@ type RoleAssignmentListResultPage interface {
 	Values() []authorization.RoleAssignment
 }
 
+// DiskListPage is an interface for compute.DiskListPage to aid in mocking
+type DiskListPage interface {
+	NextWithContext(ctx context.Context) (err error)
+	Next() error
+	NotDone() bool
+	Response() authorization.RoleAssignmentListResult
+	Values() []authorization.RoleAssignment
+}
+
 // AKSEngineClient is the interface used to talk to an Azure environment.
 // This interface exposes just the subset of Azure APIs and clients needed for
 // AKS Engine.

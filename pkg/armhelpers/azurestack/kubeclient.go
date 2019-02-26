@@ -6,6 +6,7 @@ package azurestack
 import (
 	"time"
 
+	"github.com/Azure/aks-engine/pkg/armhelpers"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	policy "k8s.io/api/policy/v1beta1"
@@ -30,7 +31,7 @@ type KubernetesClientSetClient struct {
 }
 
 //GetKubernetesClient returns a KubernetesClient hooked up to the api server at the masterURL
-func (az *AzureClient) GetKubernetesClient(masterURL, kubeConfig string, interval, timeout time.Duration) (KubernetesClient, error) {
+func (az *AzureClient) GetKubernetesClient(masterURL, kubeConfig string, interval, timeout time.Duration) (armhelpers.KubernetesClient, error) {
 	// creates the clientset
 	config, err := clientcmd.BuildConfigFromKubeconfigGetter(masterURL, func() (*clientcmdapi.Config, error) { return clientcmd.Load([]byte(kubeConfig)) })
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/Azure/aks-engine/pkg/api"
+	"github.com/Azure/aks-engine/pkg/armhelpers"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/sirupsen/logrus"
 )
@@ -60,7 +61,7 @@ func (e *DeploymentValidationError) Error() string {
 }
 
 // DeployTemplateSync deploys the template and returns ArmError
-func DeployTemplateSync(az AKSEngineClient, logger *logrus.Entry, resourceGroupName, deploymentName string, template map[string]interface{}, parameters map[string]interface{}) error {
+func DeployTemplateSync(az armhelpers.AKSEngineClient, logger *logrus.Entry, resourceGroupName, deploymentName string, template map[string]interface{}, parameters map[string]interface{}) error {
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultARMOperationTimeout)
 	defer cancel()
 	deploymentExtended, err := az.DeployTemplate(ctx, resourceGroupName, deploymentName, template, parameters)

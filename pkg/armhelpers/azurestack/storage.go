@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 
+	"github.com/Azure/aks-engine/pkg/armhelpers"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	azStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -18,7 +19,7 @@ type AzureStorageClient struct {
 }
 
 // GetStorageClient returns an authenticated client for the specified account.
-func (az *AzureClient) GetStorageClient(ctx context.Context, resourceGroup, accountName string) (AKSStorageClient, error) {
+func (az *AzureClient) GetStorageClient(ctx context.Context, resourceGroup, accountName string) (armhelpers.AKSStorageClient, error) {
 	keys, err := az.getStorageKeys(ctx, resourceGroup, accountName)
 	if err != nil {
 		return nil, err
