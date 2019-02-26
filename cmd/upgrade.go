@@ -113,18 +113,6 @@ func (uc *upgradeCmd) validate(cmd *cobra.Command) error {
 func (uc *upgradeCmd) loadCluster(cmd *cobra.Command) error {
 	var err error
 
-	if uc.containerService.Properties.IsAzureStackCloud() {
-		writeCustomCloudProfile(uc.containerService)
-	}
-
-	if err = uc.authArgs.validateAuthArgs(); err != nil {
-		return err
-	}
-
-	if uc.client, err = uc.authArgs.getClient(); err != nil {
-		return errors.Wrap(err, "failed to get client")
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), armhelpers.DefaultARMOperationTimeout)
 	defer cancel()
 	_, err = uc.client.EnsureResourceGroup(ctx, uc.resourceGroupName, uc.location, nil)
@@ -149,6 +137,18 @@ func (uc *upgradeCmd) loadCluster(cmd *cobra.Command) error {
 	uc.containerService, uc.apiVersion, err = apiloader.LoadContainerServiceFromFile(apiModelPath, true, true, nil)
 	if err != nil {
 		return errors.Wrap(err, "error parsing the api model")
+	}
+
+	if uc.containerService.Properties.IsAzureStackCloud() {
+		writeCustomCloudProfile(uc.containerService)
+	}
+
+	if err = uc.authArgs.validateAuthArgs(); err != nil {
+		return err
+	}
+
+	if uc.client, err = uc.authArgs.getClient(); err != nil {
+		return errors.Wrap(err, "failed to get client")
 	}
 
 	if uc.containerService.Location == "" {

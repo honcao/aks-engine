@@ -60,7 +60,7 @@ func (page DiskListPageClient) Response() azcompute.DiskList {
 // Values returns the slice of values for the current page or nil if there are no values.
 func (page DiskListPageClient) Values() []azcompute.Disk {
 	l := []azcompute.Disk{}
-	DeepAssignment(&l, page.dlp.Values())
+	DeepAssignment(l, page.dlp.Values())
 	return l
 }
 

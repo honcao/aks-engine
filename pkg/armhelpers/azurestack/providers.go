@@ -46,7 +46,7 @@ func (page ProviderListResultPageClient) Response() azresources.ProviderListResu
 // Values returns the slice of values for the current page or nil if there are no values.
 func (page ProviderListResultPageClient) Values() []azresources.Provider {
 	r := []azresources.Provider{}
-	DeepAssignment(&r, page.plrp.Values())
+	DeepAssignment(r, page.plrp.Values())
 	return r
 }
 

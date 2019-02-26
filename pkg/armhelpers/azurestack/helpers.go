@@ -22,13 +22,15 @@ func DeepAssignment(dst, src interface{}) {
 	if dstValue.Kind() != reflect.Ptr {
 		log.Fatal("dst is not pointer to stuct")
 	}
-	dstValue = dstValue.Elem()
-	if dstValue.Kind() != reflect.Struct {
-		fmt.Println(dstValue.Kind())
-		log.Fatal("dst is not pointer to stuct")
-	}
-	if srcValue.Kind() != reflect.Struct {
-		log.Fatal("src is not stuct")
+	if !(dstValue.Kind() == reflect.Array || dstValue.Kind() == reflect.Slice || dstValue.Kind() == reflect.Map) {
+		dstValue = dstValue.Elem()
+		if dstValue.Kind() != reflect.Struct {
+			fmt.Println(dstValue.Kind())
+			log.Fatal("dst is not pointer to stuct")
+		}
+		if srcValue.Kind() != reflect.Struct {
+			log.Fatal("src is not stuct")
+		}
 	}
 	//initializeStruct(dstValue.Type(), dstValue)
 	deepAssignmentInternal(dstValue, srcValue, 0, "")
