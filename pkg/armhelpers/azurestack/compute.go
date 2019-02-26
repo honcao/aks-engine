@@ -6,7 +6,7 @@ package azurestack
 import (
 	"context"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 )
 
 // ListVirtualMachines returns (the first page of) the machines in the specified resource group.
