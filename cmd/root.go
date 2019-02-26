@@ -199,7 +199,7 @@ func getCloudSubFromAzConfig(cloud string, f *ini.File) (uuid.UUID, error) {
 	return uuid.FromString(sub.String())
 }
 
-func (authArgs *authArgs) getClient() (armhelpers.ACSEngineClient, error) {
+func (authArgs *authArgs) getClient() (armhelpers.AKSEngineClient, error) {
 	if authArgs.isAzureStackCloud() {
 		return authArgs.getazsClient()
 	}

@@ -74,8 +74,8 @@ type DiskListPage interface {
 	NextWithContext(ctx context.Context) (err error)
 	Next() error
 	NotDone() bool
-	Response() authorization.RoleAssignmentListResult
-	Values() []authorization.RoleAssignment
+	Response() compute.DiskList
+	Values() []compute.Disk
 }
 
 // AKSEngineClient is the interface used to talk to an Azure environment.
@@ -157,7 +157,7 @@ type AKSEngineClient interface {
 
 	// MANAGED DISKS
 	DeleteManagedDisk(ctx context.Context, resourceGroupName string, diskName string) error
-	ListManagedDisksByResourceGroup(ctx context.Context, resourceGroupName string) (result compute.DiskListPage, err error)
+	ListManagedDisksByResourceGroup(ctx context.Context, resourceGroupName string) (result DiskListPage, err error)
 
 	GetKubernetesClient(masterURL, kubeConfig string, interval, timeout time.Duration) (KubernetesClient, error)
 

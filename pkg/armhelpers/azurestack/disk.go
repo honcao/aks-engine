@@ -26,9 +26,9 @@ func (az *AzureClient) DeleteManagedDisk(ctx context.Context, resourceGroupName 
 	return err
 }
 
-// DiskListPage contains a page of Disk values.
+// DiskListPageClient contains a page of Disk values.
 type DiskListPageClient struct {
-	dlp *compute.DiskListPage
+	dlp compute.DiskListPage
 	err error
 }
 
@@ -68,7 +68,7 @@ func (page DiskListPageClient) Values() []azcompute.Disk {
 func (az *AzureClient) ListManagedDisksByResourceGroup(ctx context.Context, resourceGroupName string) (result armhelpers.DiskListPage, err error) {
 	page, err := az.disksClient.ListByResourceGroup(ctx, resourceGroupName)
 	return &DiskListPageClient{
-		dlp: &page,
+		dlp: page,
 		err: err,
 	}, err
 }
