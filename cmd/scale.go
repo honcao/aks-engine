@@ -123,12 +123,12 @@ func (sc *scaleCmd) load(cmd *cobra.Command) error {
 	sc.logger = log.New().WithField("source", "scaling command line")
 	var err error
 
-	if err = sc.authArgs.validateAuthArgs(); err != nil {
-		return err
-	}
-
 	if sc.containerService.Properties.IsAzureStackCloud() {
 		writeCustomCloudProfile(sc.containerService)
+	}
+
+	if err = sc.authArgs.validateAuthArgs(); err != nil {
+		return err
 	}
 
 	if sc.client, err = sc.authArgs.getClient(); err != nil {

@@ -113,12 +113,12 @@ func (uc *upgradeCmd) validate(cmd *cobra.Command) error {
 func (uc *upgradeCmd) loadCluster(cmd *cobra.Command) error {
 	var err error
 
-	if err = uc.authArgs.validateAuthArgs(); err != nil {
-		return err
-	}
-
 	if uc.containerService.Properties.IsAzureStackCloud() {
 		writeCustomCloudProfile(uc.containerService)
+	}
+
+	if err = uc.authArgs.validateAuthArgs(); err != nil {
+		return err
 	}
 
 	if uc.client, err = uc.authArgs.getClient(); err != nil {
