@@ -222,6 +222,11 @@ func (dc *deployCmd) loadAPIModel(cmd *cobra.Command, args []string) error {
 		return errors.New("--location does not match api model location")
 	}
 
+	// For Hybrid cloud we need to write the cloud profile locally.
+	if dc.containerService.Properties.IsAzureStackCloud() {
+		writeCloudProfile(dc.containerService)
+	}
+
 	if err = dc.getAuthArgs().validateAuthArgs(); err != nil {
 		return err
 	}

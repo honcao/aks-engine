@@ -1397,7 +1397,7 @@ func (p *Properties) IsAzureStackCloud() bool {
 }
 
 // GetCustomEnvironmentJSON return the JSON format string for custom environment
-func (p *Properties) GetCustomEnvironmentJSON() string {
+func (p *Properties) GetCustomEnvironmentJSON(escape bool) string {
 	var environmentJSON string
 	if p.IsAzureStackCloud() {
 		bytes, err := json.Marshal(p.CustomCloudProfile.Environment)
@@ -1405,7 +1405,9 @@ func (p *Properties) GetCustomEnvironmentJSON() string {
 			log.Fatalf("Could not serialize Environment object - %s", err.Error())
 		}
 		environmentJSON = string(bytes)
-		environmentJSON = strings.Replace(environmentJSON, "\"", "\\\"", -1)
+		if escape {
+			environmentJSON = strings.Replace(environmentJSON, "\"", "\\\"", -1)
+		}
 	}
 	return environmentJSON
 }

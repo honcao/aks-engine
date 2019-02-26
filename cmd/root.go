@@ -5,7 +5,9 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -281,4 +283,25 @@ func getCompletionCmd(root *cobra.Command) *cobra.Command {
 		},
 	}
 	return completionCmd
+}
+
+func writeCloudProfile(cs *api.ContainerService) error {
+
+	file, err := ioutil.TempFile("", "azurestackcloud.json")
+	defer file.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Infoln(fmt.Sprintf("Writing cloud profile to: %s", file.Name()))
+
+	// Build content for the file
+	content := cs.Properties.GetCustomEnvironmentJSON(false)
+
+	if _, err = file.Write([]byte(content)); err != nil {
+		fmt.Printf("Error [Write %s] : %v\n", file.Name(), err)
+	}
+
+	os.Setenv("AZURE_ENVIRONMENT_FILEPATH", file.Name())
+
+	return nil
 }
