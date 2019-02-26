@@ -127,6 +127,10 @@ func (sc *scaleCmd) load(cmd *cobra.Command) error {
 		return err
 	}
 
+	if sc.containerService.Properties.IsAzureStackCloud() {
+		writeCustomCloudProfile(sc.containerService)
+	}
+
 	if sc.client, err = sc.authArgs.getClient(); err != nil {
 		return errors.Wrap(err, "failed to get client")
 	}

@@ -117,6 +117,10 @@ func (uc *upgradeCmd) loadCluster(cmd *cobra.Command) error {
 		return err
 	}
 
+	if uc.containerService.Properties.IsAzureStackCloud() {
+		writeCustomCloudProfile(uc.containerService)
+	}
+
 	if uc.client, err = uc.authArgs.getClient(); err != nil {
 		return errors.Wrap(err, "failed to get client")
 	}

@@ -285,7 +285,7 @@ func getCompletionCmd(root *cobra.Command) *cobra.Command {
 	return completionCmd
 }
 
-func writeCloudProfile(cs *api.ContainerService) error {
+func writeCustomCloudProfile(cs *api.ContainerService) error {
 
 	file, err := ioutil.TempFile("", "azurestackcloud.json")
 	defer file.Close()
