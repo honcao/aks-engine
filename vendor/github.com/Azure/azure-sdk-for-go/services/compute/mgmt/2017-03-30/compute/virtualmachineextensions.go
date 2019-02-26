@@ -81,7 +81,7 @@ func (client VirtualMachineExtensionsClient) CreateOrUpdatePreparer(ctx context.
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2017-12-01"
+	const APIVersion = "2017-03-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -162,7 +162,7 @@ func (client VirtualMachineExtensionsClient) DeletePreparer(ctx context.Context,
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2017-12-01"
+	const APIVersion = "2017-03-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -248,7 +248,7 @@ func (client VirtualMachineExtensionsClient) GetPreparer(ctx context.Context, re
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2017-12-01"
+	const APIVersion = "2017-03-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -325,7 +325,7 @@ func (client VirtualMachineExtensionsClient) UpdatePreparer(ctx context.Context,
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2017-12-01"
+	const APIVersion = "2017-03-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
