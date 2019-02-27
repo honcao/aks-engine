@@ -115,10 +115,6 @@ func (uc *upgradeCmd) loadCluster(cmd *cobra.Command) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), armhelpers.DefaultARMOperationTimeout)
 	defer cancel()
-	_, err = uc.client.EnsureResourceGroup(ctx, uc.resourceGroupName, uc.location, nil)
-	if err != nil {
-		return errors.Wrap(err, "error ensuring resource group")
-	}
 
 	// Load apimodel from the deployment directory.
 	apiModelPath := path.Join(uc.deploymentDirectory, "apimodel.json")
@@ -149,6 +145,11 @@ func (uc *upgradeCmd) loadCluster(cmd *cobra.Command) error {
 
 	if uc.client, err = uc.authArgs.getClient(); err != nil {
 		return errors.Wrap(err, "failed to get client")
+	}
+
+	_, err = uc.client.EnsureResourceGroup(ctx, uc.resourceGroupName, uc.location, nil)
+	if err != nil {
+		return errors.Wrap(err, "error ensuring resource group")
 	}
 
 	if uc.containerService.Location == "" {

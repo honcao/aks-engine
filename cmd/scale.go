@@ -124,10 +124,7 @@ func (sc *scaleCmd) load(cmd *cobra.Command) error {
 	var err error
 	ctx, cancel := context.WithTimeout(context.Background(), armhelpers.DefaultARMOperationTimeout)
 	defer cancel()
-	_, err = sc.client.EnsureResourceGroup(ctx, sc.resourceGroupName, sc.location, nil)
-	if err != nil {
-		return err
-	}
+
 	// load apimodel from the deployment directory
 	sc.apiModelPath = path.Join(sc.deploymentDirectory, apiModelFilename)
 
@@ -155,6 +152,11 @@ func (sc *scaleCmd) load(cmd *cobra.Command) error {
 
 	if sc.client, err = sc.authArgs.getClient(); err != nil {
 		return errors.Wrap(err, "failed to get client")
+	}
+
+	_, err = sc.client.EnsureResourceGroup(ctx, sc.resourceGroupName, sc.location, nil)
+	if err != nil {
+		return err
 	}
 
 	if sc.containerService.Location == "" {
