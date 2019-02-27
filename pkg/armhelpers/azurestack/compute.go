@@ -44,7 +44,13 @@ func (page VirtualMachineListResultPageClient) Response() azcompute.VirtualMachi
 // Values returns the slice of values for the current page or nil if there are no values.
 func (page VirtualMachineListResultPageClient) Values() []azcompute.VirtualMachine {
 	r := []azcompute.VirtualMachine{}
-	DeepAssignment(r, page.vmlrp.Values())
+	vms := page.vmlrp.Values()
+
+	for _, vm := range vms {
+		dst := azcompute.VirtualMachine{}
+		DeepAssignment(&dst, vm)
+		r = append(r, dst)
+	}
 	return r
 }
 
@@ -114,7 +120,13 @@ func (page VirtualMachineScaleSetListResultPageClient) Response() azcompute.Virt
 // Values returns the slice of values for the current page or nil if there are no values.
 func (page VirtualMachineScaleSetListResultPageClient) Values() []azcompute.VirtualMachineScaleSet {
 	r := []azcompute.VirtualMachineScaleSet{}
-	DeepAssignment(r, page.vmsslrp.Values())
+	vms := page.vmsslrp.Values()
+
+	for _, vm := range vms {
+		dst := azcompute.VirtualMachineScaleSet{}
+		DeepAssignment(&dst, vm)
+		r = append(r, dst)
+	}
 	return r
 }
 
@@ -161,7 +173,13 @@ func (page VirtualMachineScaleSetVMListResultPageClient) Response() azcompute.Vi
 // Values returns the slice of values for the current page or nil if there are no values.
 func (page VirtualMachineScaleSetVMListResultPageClient) Values() []azcompute.VirtualMachineScaleSetVM {
 	r := []azcompute.VirtualMachineScaleSetVM{}
-	DeepAssignment(r, page.vmssvlrp.Values())
+	vms := page.vmssvlrp.Values()
+
+	for _, vm := range vms {
+		dst := azcompute.VirtualMachineScaleSetVM{}
+		DeepAssignment(&dst, vm)
+		r = append(r, dst)
+	}
 	return r
 }
 

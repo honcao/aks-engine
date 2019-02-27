@@ -38,7 +38,13 @@ func (page DeploymentOperationsListResultPageClient) Response() azresources.Depl
 // Values returns the slice of values for the current page or nil if there are no values.
 func (page DeploymentOperationsListResultPageClient) Values() []azresources.DeploymentOperation {
 	r := []azresources.DeploymentOperation{}
-	DeepAssignment(r, page.dolrp.Values())
+	dos := page.dolrp.Values()
+
+	for _, do := range dos {
+		dst := azresources.DeploymentOperation{}
+		DeepAssignment(&dst, do)
+		r = append(r, dst)
+	}
 	return r
 }
 

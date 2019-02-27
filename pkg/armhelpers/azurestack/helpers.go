@@ -18,18 +18,14 @@ func DeepAssignment(dst, src interface{}) {
 	}()
 	dstValue := reflect.ValueOf(dst)
 	srcValue := reflect.ValueOf(src)
-
 	if dstValue.Kind() != reflect.Ptr {
-		log.Fatal("dst is not pointer to stuct")
+		log.Fatal("dst is not pointer type")
 	}
-	if !(dstValue.Kind() == reflect.Array || dstValue.Kind() == reflect.Slice || dstValue.Kind() == reflect.Map) {
-		dstValue = dstValue.Elem()
+	dstValue = dstValue.Elem()
+	if !(dstValue.Kind() == reflect.Array || dstValue.Kind() == reflect.Slice || dstValue.Kind() == reflect.Map || dstValue.Kind() != reflect.Struct) {
 		if dstValue.Kind() != reflect.Struct {
 			fmt.Println(dstValue.Kind())
 			log.Fatal("dst is not pointer to stuct")
-		}
-		if srcValue.Kind() != reflect.Struct {
-			log.Fatal("src is not stuct")
 		}
 	}
 	//initializeStruct(dstValue.Type(), dstValue)
@@ -56,11 +52,13 @@ func deepAssignmentInternal(dstValue, srcValue reflect.Value, depth int, path st
 			dstValue.Set(d)
 			deepAssignmentInternal(dstValue.Elem(), srcValue.Elem(), depth+1, "")
 		case reflect.Slice:
-			d := reflect.New(dstValue.Type()).Elem()
+			d := reflect.MakeSlice(dstValue.Type(), srcValue.Len(), srcValue.Cap())
 			for i := 0; i < srcValue.Len(); i++ {
 				v := reflect.New(srcValue.Index(i).Type()).Elem()
 				deepAssignmentInternal(v, srcValue.Index(i), depth+1, "")
-				d = reflect.Append(d, v)
+				if d.CanSet() {
+					d = reflect.Append(d, v)
+				}
 			}
 			dstValue.Set(d)
 		case reflect.Array:
@@ -75,7 +73,6 @@ func deepAssignmentInternal(dstValue, srcValue reflect.Value, depth int, path st
 			d := reflect.MakeMap(dstValue.Type())
 			for _, key := range srcValue.MapKeys() {
 				v := reflect.New(srcValue.MapIndex(key).Type()).Elem()
-				fmt.Println(srcValue.MapIndex(key))
 				deepAssignmentInternal(v, srcValue.MapIndex(key), depth+1, "")
 				d.SetMapIndex(key, v)
 			}
@@ -83,9 +80,9 @@ func deepAssignmentInternal(dstValue, srcValue reflect.Value, depth int, path st
 		case reflect.Struct:
 			for i := 0; i < srcValue.NumField(); i++ {
 				srcField := srcValue.Field(i)
-				fmt.Println(srcValue.Type().Field(i).Name)
+				fmt.Println(srcValue.Type().Field(i).Name, depth)
 				dstField := dstValue.FieldByName(srcValue.Type().Field(i).Name)
-				if dstField.IsValid() {
+				if dstField.IsValid() && dstField.CanAddr() {
 					deepAssignmentInternal(dstField, srcField, depth+1, "")
 				}
 			}
