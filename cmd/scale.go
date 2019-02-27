@@ -144,6 +144,7 @@ func (sc *scaleCmd) load(cmd *cobra.Command) error {
 
 	if sc.containerService.Properties.IsAzureStackCloud() {
 		writeCustomCloudProfile(sc.containerService)
+		api.AzureCloudSpecEnvMap[api.AzureStackCloud] = *sc.containerService.Properties.CustomCloudProfile.AzureEnvironmentSpecConfig
 	}
 
 	if err = sc.authArgs.validateAuthArgs(); err != nil {

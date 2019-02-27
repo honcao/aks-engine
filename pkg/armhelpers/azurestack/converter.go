@@ -48,19 +48,23 @@ func deepAssignmentInternal(dstValue, srcValue reflect.Value, depth int, path st
 		case reflect.Complex64, reflect.Complex128:
 			dstValue.SetComplex(srcValue.Complex())
 		case reflect.Ptr:
-			d := reflect.New(dstValue.Type().Elem())
-			dstValue.Set(d)
-			deepAssignmentInternal(dstValue.Elem(), srcValue.Elem(), depth+1, "")
-		case reflect.Slice:
-			d := reflect.MakeSlice(dstValue.Type(), srcValue.Len(), srcValue.Cap())
-			for i := 0; i < srcValue.Len(); i++ {
-				v := reflect.New(srcValue.Index(i).Type()).Elem()
-				deepAssignmentInternal(v, srcValue.Index(i), depth+1, "")
-				if d.CanSet() {
-					d = reflect.Append(d, v)
-				}
+			if !srcValue.IsNil() {
+				d := reflect.New(dstValue.Type().Elem())
+				dstValue.Set(d)
+				deepAssignmentInternal(dstValue.Elem(), srcValue.Elem(), depth+1, "")
 			}
-			dstValue.Set(d)
+		case reflect.Slice:
+			if !srcValue.IsNil() {
+				d := reflect.MakeSlice(dstValue.Type(), srcValue.Len(), srcValue.Cap())
+				for i := 0; i < srcValue.Len(); i++ {
+					v := reflect.New(srcValue.Index(i).Type()).Elem()
+					deepAssignmentInternal(v, srcValue.Index(i), depth+1, "")
+					if d.CanSet() {
+						d = reflect.Append(d, v)
+					}
+				}
+				dstValue.Set(d)
+			}
 		case reflect.Array:
 			d := reflect.New(dstValue.Type()).Elem()
 			for i := 0; i < srcValue.Len(); i++ {
@@ -70,13 +74,15 @@ func deepAssignmentInternal(dstValue, srcValue reflect.Value, depth int, path st
 			}
 			dstValue.Set(d)
 		case reflect.Map:
-			d := reflect.MakeMap(dstValue.Type())
-			for _, key := range srcValue.MapKeys() {
-				v := reflect.New(srcValue.MapIndex(key).Type()).Elem()
-				deepAssignmentInternal(v, srcValue.MapIndex(key), depth+1, "")
-				d.SetMapIndex(key, v)
+			if !srcValue.IsNil() {
+				d := reflect.MakeMap(dstValue.Type())
+				for _, key := range srcValue.MapKeys() {
+					v := reflect.New(srcValue.MapIndex(key).Type()).Elem()
+					deepAssignmentInternal(v, srcValue.MapIndex(key), depth+1, "")
+					d.SetMapIndex(key, v)
+				}
+				dstValue.Set(d)
 			}
-			dstValue.Set(d)
 		case reflect.Struct:
 			for i := 0; i < srcValue.NumField(); i++ {
 				srcField := srcValue.Field(i)
