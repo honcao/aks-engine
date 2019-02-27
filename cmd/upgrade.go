@@ -137,7 +137,7 @@ func (uc *upgradeCmd) loadCluster(cmd *cobra.Command) error {
 
 	if uc.containerService.Properties.IsAzureStackCloud() {
 		writeCustomCloudProfile(uc.containerService)
-		api.AzureCloudSpecEnvMap[api.AzureStackCloud] = *sc.containerService.Properties.CustomCloudProfile.AzureEnvironmentSpecConfig
+		api.AzureCloudSpecEnvMap[api.AzureStackCloud] = *uc.containerService.Properties.CustomCloudProfile.AzureEnvironmentSpecConfig
 	}
 
 	if err = uc.authArgs.validateAuthArgs(); err != nil {
