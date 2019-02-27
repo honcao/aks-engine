@@ -46,11 +46,13 @@ func (page VirtualMachineListResultPageClient) Values() []azcompute.VirtualMachi
 	r := []azcompute.VirtualMachine{}
 	vms := page.vmlrp.Values()
 
-	for _, vm := range vms {
-		dst := azcompute.VirtualMachine{}
-		DeepAssignment(&dst, vm)
-		r = append(r, dst)
-	}
+	/*
+		for _, vm := range vms {
+			dst := azcompute.VirtualMachine{}
+			DeepAssignment(&dst, vm)
+			r = append(r, dst)
+		}*/
+	DeepAssignment(&r, vms)
 	return r
 }
 

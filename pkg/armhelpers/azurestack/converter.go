@@ -3,7 +3,6 @@
 package azurestack
 
 import (
-	"fmt"
 	"log"
 	"reflect"
 )
@@ -22,14 +21,19 @@ func DeepAssignment(dst, src interface{}) {
 		log.Fatal("dst is not pointer type")
 	}
 	dstValue = dstValue.Elem()
-	if !(dstValue.Kind() == reflect.Array || dstValue.Kind() == reflect.Slice || dstValue.Kind() == reflect.Map || dstValue.Kind() != reflect.Struct) {
-		if dstValue.Kind() != reflect.Struct {
-			fmt.Println(dstValue.Kind())
-			log.Fatal("dst is not pointer to stuct")
-		}
+	if dstValue.Kind() != reflect.Struct {
+		deepAssignmentInternal(dstValue, srcValue, 0, "")
+		return
 	}
-	//initializeStruct(dstValue.Type(), dstValue)
-	deepAssignmentInternal(dstValue, srcValue, 0, "")
+
+	if dstValue.Kind() == reflect.Slice {
+		for i := 0; i < srcValue.Len(); i++ {
+			v := reflect.New(srcValue.Index(i).Type()).Elem()
+			deepAssignmentInternal(v, srcValue.Index(i), 0, "")
+			dstValue.Set(reflect.Append(dstValue, v))
+		}
+		return
+	}
 }
 
 func deepAssignmentInternal(dstValue, srcValue reflect.Value, depth int, path string) {
@@ -86,7 +90,6 @@ func deepAssignmentInternal(dstValue, srcValue reflect.Value, depth int, path st
 		case reflect.Struct:
 			for i := 0; i < srcValue.NumField(); i++ {
 				srcField := srcValue.Field(i)
-				fmt.Println(srcValue.Type().Field(i).Name, depth)
 				dstField := dstValue.FieldByName(srcValue.Type().Field(i).Name)
 				if dstField.IsValid() && dstField.CanAddr() {
 					deepAssignmentInternal(dstField, srcField, depth+1, "")
