@@ -21,7 +21,7 @@ func DeepAssignment(dst, src interface{}) {
 		log.Fatal("dst is not pointer type")
 	}
 	dstValue = dstValue.Elem()
-	if dstValue.Kind() != reflect.Struct {
+	if dstValue.Kind() == reflect.Struct {
 		deepAssignmentInternal(dstValue, srcValue, 0, "")
 		return
 	}
