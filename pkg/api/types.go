@@ -1434,7 +1434,6 @@ func (p *Properties) GetCustomEnvironmentJSON() string {
 			log.Fatalf("Could not serialize Environment object - %s", err.Error())
 		}
 		environmentJSON = string(bytes)
-		environmentJSON = strings.Replace(environmentJSON, "\"", "\\\"", -1)
 	}
 	return environmentJSON
 }
