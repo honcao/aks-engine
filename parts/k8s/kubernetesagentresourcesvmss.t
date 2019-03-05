@@ -26,6 +26,7 @@
       "creationSource" : "[concat(parameters('generatorCode'), '-', variables('{{.Name}}VMNamePrefix'))]",
       "resourceNameSuffix" : "[parameters('nameSuffix')]",
       "orchestrator" : "[variables('orchestratorNameVersionTag')]",
+      "aksEngineVersion" : "[parameters('aksEngineVersion')]",
       "poolName" : "{{.Name}}"
     },
     "location": "[variables('location')]",
@@ -54,7 +55,10 @@
     },
     "properties": {
       "singlePlacementGroup": {{UseSinglePlacementGroup .}},
-      "overprovision": false,
+      "overprovision": {{IsVMSSOverProvisioningEnabled}},
+      {{if IsVMSSOverProvisioningEnabled}}
+      "doNotRunExtensionsOnOverprovisionedVMs": true,
+      {{end}}
       "upgradePolicy": {
         "mode": "Manual"
       },
@@ -111,6 +115,9 @@
           {{GetKubernetesAgentCustomData .}}
           "linuxConfiguration": {
               "disablePasswordAuthentication": true,
+              {{if HasMultipleSshKeys }}
+              "ssh": {{ GetSshPublicKeys }}
+              {{ else }}
               "ssh": {
                 "publicKeys": [
                   {
@@ -119,6 +126,7 @@
                   }
                 ]
               }
+              {{ end }}
             }
             {{if HasLinuxSecrets}}
               ,
@@ -165,7 +173,6 @@
             {{if UseAksExtension}}
             ,{
               "name": "[concat(variables('{{.Name}}VMNamePrefix'), '-computeAksLinuxBilling')]",
-              "location": "[variables('location')]",
               "properties": {
                 "publisher": "Microsoft.AKS",
                 "type": "Compute.AKS-Engine.Linux.Billing",

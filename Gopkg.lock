@@ -10,14 +10,12 @@
   version = "v0.2.0"
 
 [[projects]]
-  digest = "1:27739a80d1f0b257fa1e6b360e4515dd01e2811869838f5595252a8b2fcec868"
+  digest = "1:c22d3f330689215420ec360a2247b2417de23989c8ca26b7b87a5d9cbe828dde"
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
     "services/apimanagement/mgmt/2017-03-01/apimanagement",
     "services/authorization/mgmt/2015-07-01/authorization",
-    "services/compute/mgmt/2018-04-01/compute",
-    "services/compute/mgmt/2018-06-01/compute",
-    "services/cosmos-db/mgmt/2015-04-08/documentdb",
+    "services/compute/mgmt/2018-10-01/compute",
     "services/graphrbac/1.6/graphrbac",
     "services/keyvault/mgmt/2018-02-14/keyvault",
     "services/network/mgmt/2018-08-01/network",
@@ -148,6 +146,14 @@
   pruneopts = "NUT"
   revision = "b32fa301c9fe55953584134cb6853a13c87ec0a1"
   version = "v0.16.0"
+
+[[projects]]
+  digest = "1:bde9f189072512ba353f3641d4839cb4c9c7edf421e467f2c03f267b402bd16c"
+  name = "github.com/gofrs/uuid"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "6b08a5c5172ba18946672b49749cde22873dd7c2"
+  version = "v3.2.0"
 
 [[projects]]
   digest = "1:abea725bcf0210887f5da19d804fffa1dd45a42a56bdf5f02322345e3fee4f0d"
@@ -820,9 +826,7 @@
   input-imports = [
     "github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2017-03-01/apimanagement",
     "github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization",
-    "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute",
-    "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute",
-    "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb",
+    "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute",
     "github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac",
     "github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault",
     "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network",
@@ -844,6 +848,7 @@
     "github.com/davecgh/go-spew/spew",
     "github.com/ghodss/yaml",
     "github.com/go-bindata/go-bindata/go-bindata",
+    "github.com/gofrs/uuid",
     "github.com/imdario/mergo",
     "github.com/influxdata/influxdb/client/v2",
     "github.com/kelseyhightower/envconfig",
@@ -854,7 +859,6 @@
     "github.com/onsi/ginkgo/reporters",
     "github.com/onsi/gomega",
     "github.com/pkg/errors",
-    "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
     "github.com/spf13/pflag",

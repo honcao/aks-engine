@@ -14,8 +14,8 @@ import (
 	"github.com/Azure/aks-engine/pkg/armhelpers"
 	"github.com/Azure/aks-engine/pkg/helpers"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -24,8 +24,8 @@ import (
 
 const (
 	rootName             = "aks-engine"
-	rootShortDescription = "AKS-Engine deploys and manages Kubernetes clusters in Azure"
-	rootLongDescription  = "AKS-Engine deploys and manages Kubernetes clusters in Azure"
+	rootShortDescription = "AKS Engine deploys and manages Kubernetes clusters in Azure"
+	rootLongDescription  = "AKS Engine deploys and manages Kubernetes clusters in Azure"
 )
 
 var (
@@ -33,7 +33,7 @@ var (
 	dumpDefaultModel bool
 )
 
-// NewRootCmd returns the root command for AKS-Engine.
+// NewRootCmd returns the root command for AKS Engine.
 func NewRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   rootName,
@@ -61,6 +61,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.AddCommand(newVersionCmd())
 	rootCmd.AddCommand(newGenerateCmd())
 	rootCmd.AddCommand(newDeployCmd())
+	rootCmd.AddCommand(newGetVersionsCmd())
 	rootCmd.AddCommand(newOrchestratorsCmd())
 	rootCmd.AddCommand(newUpgradeCmd())
 	rootCmd.AddCommand(newScaleCmd())

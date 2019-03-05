@@ -21,6 +21,7 @@ import (
 	"github.com/Azure/aks-engine/pkg/api/common"
 	"github.com/Azure/aks-engine/pkg/helpers"
 	"github.com/Azure/aks-engine/pkg/i18n"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -299,6 +300,18 @@ func (t *TemplateGenerator) getMasterCustomData(cs *api.ContainerService, textFi
 // getTemplateFuncMap returns all functions used in template generation
 func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) template.FuncMap {
 	return template.FuncMap{
+		"IsAzureStackCloud": func() bool {
+			return cs.Properties.IsAzureStackCloud()
+		},
+		"GetCustomEnvironmentJSON": func() string {
+			return cs.Properties.GetCustomEnvironmentJSON()
+		},
+		"GetCustomCloudAuthenticationMethod": func() string {
+			return cs.Properties.GetCustomCloudAuthenticationMethod()
+		},
+		"GetCustomCloudIdentitySystem": func() string {
+			return cs.Properties.GetCustomCloudIdentitySystem()
+		},
 		"IsMasterVirtualMachineScaleSets": func() bool {
 			return cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.IsVirtualMachineScaleSets()
 		},
@@ -466,29 +479,17 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 			return cs.Properties.OrchestratorProfile.KubernetesConfig.UseManagedIdentity
 		},
 		"UserAssignedIDEnabled": func() bool {
-			if cs.Properties.OrchestratorProfile.KubernetesConfig.UseManagedIdentity &&
-				cs.Properties.OrchestratorProfile.KubernetesConfig.UserAssignedID != "" {
-				return true
-			}
-			return false
+			return cs.Properties.OrchestratorProfile.KubernetesConfig.UserAssignedIDEnabled()
 		},
 		"UserAssignedID": func() string {
-			if cs.Properties.OrchestratorProfile.KubernetesConfig.UseManagedIdentity &&
-				cs.Properties.OrchestratorProfile.KubernetesConfig.UserAssignedID != "" {
-				return cs.Properties.OrchestratorProfile.KubernetesConfig.UserAssignedID
-			}
-			return ""
+			return cs.Properties.OrchestratorProfile.KubernetesConfig.GetUserAssignedID()
 		},
 		"UserAssignedClientID": func() string {
-			if cs.Properties.OrchestratorProfile.KubernetesConfig.UseManagedIdentity &&
-				cs.Properties.OrchestratorProfile.KubernetesConfig.UserAssignedClientID != "" {
-				return cs.Properties.OrchestratorProfile.KubernetesConfig.UserAssignedClientID
-			}
-			return ""
+			return cs.Properties.OrchestratorProfile.KubernetesConfig.GetUserAssignedClientID()
 		},
 		"UseAksExtension": func() bool {
 			cloudSpecConfig := cs.GetCloudSpecConfig()
-			return cloudSpecConfig.CloudName == api.AzurePublicCloud
+			return cloudSpecConfig.CloudName == api.AzurePublicCloud || cloudSpecConfig.CloudName == api.AzureChinaCloud
 		},
 		"IsMooncake": func() bool {
 			cloudSpecConfig := cs.GetCloudSpecConfig()
@@ -722,6 +723,9 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 		"GetKubernetesB64Configs": func() string {
 			return getBase64CustomScript(kubernetesConfigurations)
 		},
+		"GetKubernetesB64ConfigsCustomCloud": func() string {
+			return getBase64CustomScript(kubernetesConfigurationsCustomCloud)
+		},
 		"GetKubernetesB64Mountetcd": func() string {
 			return getBase64CustomScript(kubernetesMountetcd)
 		},
@@ -736,6 +740,48 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 		},
 		"GetB64systemConf": func() string {
 			return getBase64CustomScript(systemConf)
+		},
+		"HasMultipleSshKeys": func() bool {
+			return len(cs.Properties.LinuxProfile.SSH.PublicKeys) > 1
+		},
+		"GetSshPublicKeys": func() string {
+			// This generates the publicKeys array described at https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/createorupdate#sshconfiguration
+			// "ssh": {
+			//     "publicKeys": [
+			//       {
+			//         "keyData": "[parameters('sshRSAPublicKey')]",
+			//         "path": "[variables('sshKeyPath')]"
+			//       }
+			//     ]
+			//   }
+			publicKeyPath := "[variables('sshKeyPath')]"
+			publicKeys := []compute.SSHPublicKey{}
+			for _, publicKey := range cs.Properties.LinuxProfile.SSH.PublicKeys {
+				publicKeyTrimmed := strings.TrimSpace(publicKey.KeyData)
+				publicKeys = append(publicKeys, compute.SSHPublicKey{
+					Path:    &publicKeyPath,
+					KeyData: &publicKeyTrimmed,
+				})
+			}
+			ssh := compute.SSHConfiguration{
+				PublicKeys: &publicKeys,
+			}
+			sshJSON, err := json.Marshal(ssh)
+			if err != nil {
+				panic(err)
+			}
+			return string(sshJSON)
+		},
+		"GetSshPublicKeysPowerShell": func() string {
+			str := ""
+			lastItem := len(cs.Properties.LinuxProfile.SSH.PublicKeys) - 1
+			for i, publicKey := range cs.Properties.LinuxProfile.SSH.PublicKeys {
+				str += `"` + strings.TrimSpace(publicKey.KeyData) + `"`
+				if i < lastItem {
+					str += ", "
+				}
+			}
+			return str
 		},
 		"GetKubernetesMasterPreprovisionYaml": func() string {
 			str := ""
@@ -795,7 +841,8 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 				kubernetesWindowsConfigFunctionsPS1,
 				kubernetesWindowsKubeletFunctionsPS1,
 				kubernetesWindowsCniFunctionsPS1,
-				kubernetesWindowsAzureCniFunctionsPS1}
+				kubernetesWindowsAzureCniFunctionsPS1,
+				kubernetesWindowsOpenSSHFunctionPS1}
 
 			// Create a buffer, new zip
 			buf := new(bytes.Buffer)
@@ -917,6 +964,9 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 		"HasCustomSearchDomain": func() bool {
 			return cs.Properties.LinuxProfile.HasSearchDomain()
 		},
+		"HasCiliumNetworkPlugin": func() bool {
+			return cs.Properties.OrchestratorProfile.KubernetesConfig.NetworkPlugin == NetworkPluginCilium
+		},
 		"HasCustomNodesDNS": func() bool {
 			return cs.Properties.LinuxProfile.HasCustomNodesDNS()
 		},
@@ -925,6 +975,12 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 		},
 		"HasWindowsCustomImage": func() bool {
 			return cs.Properties.WindowsProfile.HasCustomImage()
+		},
+		"WindowsSSHEnabled": func() bool {
+			return cs.Properties.WindowsProfile.SSHEnabled
+		},
+		"WindowsAutomaticUpdateEnabled": func() bool {
+			return cs.Properties.WindowsProfile.GetEnableWindowsUpdate()
 		},
 		"GetConfigurationScriptRootURL": func() string {
 			if cs.Properties.LinuxProfile.ScriptRootURL == "" {
@@ -1018,6 +1074,14 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 		},
 		"EnablePodSecurityPolicy": func() bool {
 			return to.Bool(cs.Properties.OrchestratorProfile.KubernetesConfig.EnablePodSecurityPolicy)
+		},
+		"IsVMSSOverProvisioningEnabled": func() bool {
+			for _, agentProfile := range cs.Properties.AgentPoolProfiles {
+				if to.Bool(agentProfile.VMSSOverProvisioningEnabled) {
+					return true
+				}
+			}
+			return false
 		},
 		// inspired by http://stackoverflow.com/questions/18276173/calling-a-template-with-several-pipeline-parameters/18276968#18276968
 		"dict": func(values ...interface{}) (map[string]interface{}, error) {

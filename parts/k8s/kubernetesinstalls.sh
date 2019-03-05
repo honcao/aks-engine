@@ -6,12 +6,13 @@ CNI_CONFIG_DIR="/etc/cni/net.d"
 CNI_BIN_DIR="/opt/cni/bin"
 CNI_DOWNLOADS_DIR="/opt/cni/downloads"
 CONTAINERD_DOWNLOADS_DIR="/opt/containerd/downloads"
-CRI_CONTAINERD_VERSION="1.1.5"
-CONTAINERD_DOWNLOAD_URL="${CONTAINERD_DOWNLOAD_URL_BASE}cri-containerd-${CRI_CONTAINERD_VERSION}.linux-amd64.tar.gz"
-CONTAINERD_TGZ_TMP=$(echo ${CONTAINERD_DOWNLOAD_URL} | cut -d "/" -f 5)
 
 removeEtcd() {
-    rm -rf /usr/bin/etcd &
+    rm -rf /usr/bin/etcd
+}
+
+removeMoby() {
+    sudo apt-get purge -y moby-engine moby-cli
 }
 
 installEtcd() {
@@ -19,17 +20,21 @@ installEtcd() {
     if [[ "$CURRENT_VERSION" == "${ETCD_VERSION}" ]]; then
         echo "etcd version ${ETCD_VERSION} is already installed, skipping download"
     else
-        retrycmd_get_tarball 360 10 /tmp/etcd-v${ETCD_VERSION}-linux-amd64.tar.gz ${ETCD_DOWNLOAD_URL}/etcd-v${ETCD_VERSION}-linux-amd64.tar.gz || exit $ERR_ETCD_DOWNLOAD_TIMEOUT
+        retrycmd_get_tarball 120 5 /tmp/etcd-v${ETCD_VERSION}-linux-amd64.tar.gz ${ETCD_DOWNLOAD_URL}/etcd-v${ETCD_VERSION}-linux-amd64.tar.gz || exit $ERR_ETCD_DOWNLOAD_TIMEOUT
         removeEtcd
         tar -xzvf /tmp/etcd-v${ETCD_VERSION}-linux-amd64.tar.gz -C /usr/bin/ --strip-components=1 || exit $ERR_ETCD_DOWNLOAD_TIMEOUT
     fi
 }
 
 installDeps() {
+    retrycmd_if_failure_no_stats 120 5 25 echo "deb http://azure.archive.ubuntu.com/ubuntu/ xenial-proposed restricted main multiverse universe" >> /etc/apt/sources.list || exit $ERR_SYSTEMD_INSTALL_FAIL
     retrycmd_if_failure_no_stats 120 5 25 curl -fsSL https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb > /tmp/packages-microsoft-prod.deb || exit $ERR_MS_PROD_DEB_DOWNLOAD_TIMEOUT
     retrycmd_if_failure 60 5 10 dpkg -i /tmp/packages-microsoft-prod.deb || exit $ERR_MS_PROD_DEB_PKG_ADD_FAIL
     apt_get_update || exit $ERR_APT_UPDATE_TIMEOUT
-    apt_get_install 30 1 600 apt-transport-https blobfuse ca-certificates ceph-common cgroup-lite cifs-utils conntrack ebtables ethtool fuse git glusterfs-client init-system-helpers iproute2 ipset iptables jq mount nfs-common pigz socat util-linux xz-utils zip || exit $ERR_APT_INSTALL_TIMEOUT
+    apt_get_install 30 1 600 apt-transport-https blobfuse ca-certificates ceph-common cgroup-lite cifs-utils conntrack ebtables ethtool fuse git glusterfs-client init-system-helpers iproute2 ipset iptables jq mount nfs-common pigz socat util-linux xz-utils zip htop iotop iftop sysstat || exit $ERR_APT_INSTALL_TIMEOUT
+    wait_for_apt_locks
+    apt_get_install 20 30 120 systemd/xenial-proposed || exit $ERR_SYSTEMD_INSTALL_FAIL
+    wait_for_apt_locks
 }
 
 installGPUDrivers() {
@@ -98,16 +103,17 @@ installContainerRuntime() {
 }
 
 installMoby() {
-    dockerd --version
-    if [ $? -eq 0 ]; then
-        echo "dockerd is already installed, skipping download"
+    CURRENT_VERSION=$(dockerd --version | grep "Docker version" | cut -d "," -f 1 | cut -d " " -f 3)
+    if [[ "$CURRENT_VERSION" == "${MOBY_VERSION}" ]]; then
+        echo "dockerd $MOBY_VERSION is already installed, skipping Moby download"
     else
+        removeMoby
         retrycmd_if_failure_no_stats 120 5 25 curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list > /tmp/microsoft-prod.list || exit $ERR_MOBY_APT_LIST_TIMEOUT
         retrycmd_if_failure 10 5 10 cp /tmp/microsoft-prod.list /etc/apt/sources.list.d/ || exit $ERR_MOBY_APT_LIST_TIMEOUT
         retrycmd_if_failure_no_stats 120 5 25 curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /tmp/microsoft.gpg || exit $ERR_MS_GPG_KEY_DOWNLOAD_TIMEOUT
         retrycmd_if_failure 10 5 10 cp /tmp/microsoft.gpg /etc/apt/trusted.gpg.d/ || exit $ERR_MS_GPG_KEY_DOWNLOAD_TIMEOUT
         apt_get_update || exit $ERR_APT_UPDATE_TIMEOUT
-        apt_get_install 20 30 120 moby-engine=3.0.1 moby-cli=3.0.1 || exit $ERR_MOBY_INSTALL_TIMEOUT
+        apt_get_install 20 30 120 moby-engine=${MOBY_VERSION} moby-cli=3.0.3 --allow-downgrades || exit $ERR_MOBY_INSTALL_TIMEOUT  # HACK: revert moby-cli to ${MOBY_VERSION} for next release
     fi
 }
 
@@ -124,6 +130,27 @@ installDockerEngine() {
         apt_get_update || exit $ERR_APT_UPDATE_TIMEOUT
         apt_get_install 20 30 120 docker-engine || exit $ERR_DOCKER_INSTALL_TIMEOUT
     fi
+}
+
+overrideDockerEngineStorageDriver() {
+    echo "stopping docker engine"
+    sudo systemctl stop docker
+    cat << EOF > /tmp/daemon.json 
+{
+    "storage-driver": "overlay2",
+    "live-restore": true,
+    "log-driver": "json-file",
+    "log-opts":  {
+        "max-size": "50m",
+        "max-file": "5"
+    }
+}
+EOF
+    sudo mv /tmp/daemon.json /etc/docker/daemon.json
+    echo "cleaning up aufs storage"
+    sudo rm -rf /var/lib/docker/aufs
+    echo "starting docker engine with overlay2 driver"
+    sudo systemctl start docker
 }
 
 installKataContainersRuntime() {
@@ -184,7 +211,9 @@ downloadAzureCNI() {
 }
 
 downloadContainerd() {
+    CONTAINERD_DOWNLOAD_URL="${CONTAINERD_DOWNLOAD_URL_BASE}cri-containerd-${CONTAINERD_VERSION}.linux-amd64.tar.gz"
     mkdir -p $CONTAINERD_DOWNLOADS_DIR
+    CONTAINERD_TGZ_TMP=$(echo ${CONTAINERD_DOWNLOAD_URL} | cut -d "/" -f 5)
     retrycmd_get_tarball 120 5 "$CONTAINERD_DOWNLOADS_DIR/${CONTAINERD_TGZ_TMP}" ${CONTAINERD_DOWNLOAD_URL} || exit $ERR_CONTAINERD_DOWNLOAD_TIMEOUT
 }
 
@@ -212,13 +241,22 @@ installAzureCNI() {
 }
 
 installContainerd() {
-    if [[ ! -f "$CONTAINERD_DOWNLOADS_DIR/${CONTAINERD_TGZ_TMP}" ]]; then
-        downloadContainerd
+    CURRENT_VERSION=$(containerd -version | cut -d " " -f 3 | sed 's|v||')
+    if [[ "$CURRENT_VERSION" == "${CONTAINERD_VERSION}" ]]; then
+        echo "containerd is already installed, skipping install"
+    else
+        CONTAINERD_TGZ_TMP="cri-containerd-${CONTAINERD_VERSION}.linux-amd64.tar.gz"
+        rm -Rf /usr/bin/containerd
+        rm -Rf /var/lib/docker/containerd
+        rm -Rf /run/docker/containerd
+        if [[ ! -f "$CONTAINERD_DOWNLOADS_DIR/${CONTAINERD_TGZ_TMP}" ]]; then
+            downloadContainerd
+        fi
+        tar -xzf "$CONTAINERD_DOWNLOADS_DIR/$CONTAINERD_TGZ_TMP" -C /
+        sed -i '/\[Service\]/a ExecStartPost=\/sbin\/iptables -P FORWARD ACCEPT -w' /etc/systemd/system/containerd.service
+        echo "Successfully installed cri-containerd..."
     fi
-    tar -xzf "$CONTAINERD_DOWNLOADS_DIR/$CONTAINERD_TGZ_TMP" -C /
     rm -Rf $CONTAINERD_DOWNLOADS_DIR &
-    sed -i '/\[Service\]/a ExecStartPost=\/sbin\/iptables -P FORWARD ACCEPT' /etc/systemd/system/containerd.service
-    echo "Successfully installed cri-containerd..."
 }
 
 installImg() {
@@ -265,6 +303,9 @@ installKubeletAndKubectl() {
 pullContainerImage() {
     CLI_TOOL=$1
     DOCKER_IMAGE_URL=$2
+    if [[ ! -z "${PRIVATE_AZURE_REGISTRY_SERVER:-}" ]]; then
+        $CLI_TOOL login -u $SERVICE_PRINCIPAL_CLIENT_ID -p $SERVICE_PRINCIPAL_CLIENT_SECRET $PRIVATE_AZURE_REGISTRY_SERVER
+    fi
     retrycmd_if_failure 60 1 1200 $CLI_TOOL pull $DOCKER_IMAGE_URL || exit $ERR_CONTAINER_IMG_PULL_TIMEOUT
 }
 

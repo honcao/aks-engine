@@ -137,6 +137,36 @@
           "sourcePortRange": "*"
         }
       }
+    {{if IsAzureStackCloud}}
+      ,{
+        "name": "allow_vnet_inbound",
+        "properties": {
+          "access": "Allow",
+          "description": "Allow traffic to specific addresses.",
+          "destinationAddressPrefix": "10.0.0.0/8",
+          "destinationPortRange": "*",
+          "direction": "Inbound",
+          "priority": 4095,
+          "protocol": "*",
+          "sourceAddressPrefix": "10.0.0.0/8",
+          "sourcePortRange": "*"
+        }
+      },
+      {
+        "name": "allow_vnet_outbound",
+        "properties": {
+          "access": "Allow",
+          "description": "Allow traffic to specific addresses.",
+          "destinationAddressPrefix": "10.0.0.0/8",
+          "destinationPortRange": "*",
+          "direction": "Outbound",
+          "priority": 4095,
+          "protocol": "*",
+          "sourceAddressPrefix": "10.0.0.0/8",
+          "sourcePortRange": "*"
+        }
+      }
+    {{end}}
     {{if IsFeatureEnabled "BlockOutboundInternet"}}
       ,{
         "name": "allow_vnet",
@@ -238,11 +268,7 @@
     "dnsSettings": {
       "domainNameLabel": "[variables('masterFqdnPrefix')]"
     },
-    {{ if eq LoadBalancerSku "Standard"}}
     "publicIPAllocationMethod": "Static"
-    {{else}}
-    "publicIPAllocationMethod": "Dynamic"
-    {{end}}
   },
   "sku": {
       "name": "[variables('loadBalancerSku')]"
@@ -510,6 +536,9 @@
           {{GetKubernetesMasterCustomData .}}
           "linuxConfiguration": {
               "disablePasswordAuthentication": true,
+              {{if HasMultipleSshKeys }}
+              "ssh": {{ GetSshPublicKeys }}
+              {{ else }}
               "ssh": {
                 "publicKeys": [
                   {
@@ -518,6 +547,7 @@
                   }
                 ]
               }
+              {{ end }}
             }
             {{if .LinuxProfile.HasSecrets}}
               ,
@@ -570,7 +600,6 @@
             {{if UseAksExtension}}
             ,{
               "name": "[concat(variables('masterVMNamePrefix'), 'vmss-computeAksLinuxBilling')]",
-              "location": "[variables('location')]",
               "properties": {
                 "publisher": "Microsoft.AKS",
                 "type": "Compute.AKS-Engine.Linux.Billing",
