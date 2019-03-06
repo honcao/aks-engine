@@ -402,8 +402,10 @@
 {{end}}
         ]
 {{if not IsAzureCNI}}
+  {{if not IsAzureStackCloud}}
         ,
         "enableIPForwarding": true
+  {{end}}
 {{end}}
 {{if HasCustomNodesDNS}}
  ,"dnsSettings": {
@@ -477,10 +479,12 @@
             {{end}}
   {{end}}
           ]
-  {{if not IsAzureCNI}}
-          ,
-          "enableIPForwarding": true
+{{if not IsAzureCNI}}
+  {{if not IsAzureStackCloud}}
+        ,
+        "enableIPForwarding": true
   {{end}}
+{{end}}
   {{if HasCustomNodesDNS}}
    ,"dnsSettings": {
           "dnsServers": [
