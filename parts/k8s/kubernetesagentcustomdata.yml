@@ -225,7 +225,16 @@ write_files:
     - name: localcluster
       cluster:
         certificate-authority: /etc/kubernetes/certs/ca.crt
+        {{if IsAzureStackCloud}}
+        {{if IsMultipleMasters}}
+        server: https://<kubernetesAPIServerIP>:443
+        {{else}}
         server: https://{{WrapAsVariable "kubernetesAPIServerIP"}}:443
+        {{end}}
+        {{else}}
+        server: https://{{WrapAsVariable "kubernetesAPIServerIP"}}:443
+        {{end}}
+        
     users:
     - name: client
       user:
@@ -263,6 +272,11 @@ AGENT_ARTIFACTS_CONFIG_PLACEHOLDER
     #!/bin/bash
 {{if not EnablePodSecurityPolicy}}
     sed -i "s|apparmor_parser|d|g" "/etc/systemd/system/kubelet.service"
+{{end}}
+{{if IsAzureStackCloud}}
+    {{if IsMultipleMasters}}
+    sed -i "s|<kubernetesAPIServerIP>|{{WrapAsVariable "masterPublicLbFQDN"}}|g" "/var/lib/kubelet/kubeconfig"
+    {{end}}
 {{end}}
 {{if not IsIPMasqAgentEnabled}}
     {{if IsAzureCNI}}
