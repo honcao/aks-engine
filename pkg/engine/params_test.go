@@ -37,7 +37,11 @@ func TestAssignParameters(t *testing.T) {
 		}
 
 		containerService.Location = "eastus"
-		containerService.SetPropertiesDefaults(false, false)
+		_, err = containerService.SetPropertiesDefaults(false, false)
+		if err != nil {
+			t.Error(err)
+		}
+
 		parametersMap, err := getParameters(containerService, DefaultGeneratorCode, "testversion")
 		if err != nil {
 			t.Errorf("should not get error when populating parameters")

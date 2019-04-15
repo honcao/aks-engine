@@ -242,9 +242,13 @@ func TestWriteCustomCloudProfile(t *testing.T) {
 		},
 	}
 
-	cs.SetPropertiesDefaults(false, false)
+	_, err := cs.SetPropertiesDefaults(false, false)
+	if err != nil {
+		t.Error(err)
+	}
 
-	if err := writeCustomCloudProfile(cs); err != nil {
+	err = writeCustomCloudProfile(cs)
+	if err != nil {
 		t.Fatalf("failed to write custom cloud profile: err - %s", err)
 	}
 
@@ -252,8 +256,8 @@ func TestWriteCustomCloudProfile(t *testing.T) {
 	if environmentFilePath == "" {
 		t.Fatal("failed to write custom cloud profile: err - AZURE_ENVIRONMENT_FILEPATH is empty")
 	}
-
-	if _, err := os.Stat(environmentFilePath); os.IsNotExist(err) {
+	_, err = os.Stat(environmentFilePath)
+	if os.IsNotExist(err) {
 		// path/to/whatever does not exist
 		t.Fatalf("failed to write custom cloud profile: file %s does not exist", environmentFilePath)
 	}

@@ -247,7 +247,11 @@ func TestDeleteServiceAccounts(t *testing.T) {
 func TestWriteArtifacts(t *testing.T) {
 	g := NewGomegaWithT(t)
 	cs := api.CreateMockContainerService("testcluster", "1.10.13", 3, 2, false)
-	cs.SetPropertiesDefaults(false, false)
+	_, err := cs.SetPropertiesDefaults(false, false)
+	if err != nil {
+		t.Error(err)
+	}
+
 	rcc := rotateCertsCmd{
 		authProvider:     &authArgs{},
 		containerService: cs,
@@ -255,14 +259,18 @@ func TestWriteArtifacts(t *testing.T) {
 		outputDirectory:  "_test_output",
 	}
 	defer os.RemoveAll(rcc.outputDirectory)
-	err := rcc.writeArtifacts()
+	err = rcc.writeArtifacts()
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
 func TestUpdateKubeconfig(t *testing.T) {
 	g := NewGomegaWithT(t)
 	cs := api.CreateMockContainerService("testcluster", "1.10.13", 3, 2, false)
-	cs.SetPropertiesDefaults(false, false)
+	_, err := cs.SetPropertiesDefaults(false, false)
+	if err != nil {
+		t.Error(err)
+	}
+
 	rcc := rotateCertsCmd{
 		authProvider:       &authArgs{},
 		containerService:   cs,
@@ -282,7 +290,7 @@ func TestUpdateKubeconfig(t *testing.T) {
 			},
 		},
 	}
-	err := rcc.updateKubeconfig()
+	err = rcc.updateKubeconfig()
 	g.Expect(err).NotTo(HaveOccurred())
 
 	rcc.masterFQDN = "invalid"
@@ -294,7 +302,11 @@ func TestRotateCerts(t *testing.T) {
 	ctx := context.Background()
 	g := NewGomegaWithT(t)
 	cs := api.CreateMockContainerService("testcluster", "1.10.13", 3, 2, false)
-	cs.SetPropertiesDefaults(false, false)
+	_, err := cs.SetPropertiesDefaults(false, false)
+	if err != nil {
+		t.Error(err)
+	}
+
 	mockClient := &armhelpers.MockAKSEngineClient{MockKubernetesClient: &armhelpers.MockKubernetesClient{}}
 	rcc := rotateCertsCmd{
 		authProvider:       &authArgs{},
@@ -337,7 +349,7 @@ func TestRotateCerts(t *testing.T) {
 			},
 		},
 	}
-	err := rcc.rotateEtcd(ctx)
+	err = rcc.rotateEtcd(ctx)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	err = rcc.rotateApiserver()

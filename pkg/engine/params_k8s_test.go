@@ -39,7 +39,11 @@ func TestAssignKubernetesParameters(t *testing.T) {
 		parametersMap := paramsMap{}
 		containerService.Location = "eastus"
 		cloudSpecConfig := containerService.GetCloudSpecConfig()
-		containerService.SetPropertiesDefaults(false, false)
+		_, err = containerService.SetPropertiesDefaults(false, false)
+		if err != nil {
+			t.Error(err)
+		}
+
 		assignKubernetesParameters(containerService.Properties, parametersMap, cloudSpecConfig, DefaultGeneratorCode)
 		for k, v := range parametersMap {
 			switch val := v.(paramsMap)["value"].(type) {
