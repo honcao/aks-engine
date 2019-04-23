@@ -2732,6 +2732,27 @@ func TestGetPrimaryAvailabilitySetName(t *testing.T) {
 	if got != expected {
 		t.Errorf("expected primary availability set name %s, but got %s", expected, got)
 	}
+
+	p.AgentPoolProfiles = []*AgentPoolProfile{
+		{
+			Name:                "agentpool",
+			VMSize:              "Standard_D2_v2",
+			Count:               1,
+			AvailabilityProfile: VirtualMachineScaleSets,
+		},
+	}
+	expected = ""
+	got = p.GetPrimaryAvailabilitySetName()
+	if got != expected {
+		t.Errorf("expected primary availability set name %s, but got %s", expected, got)
+	}
+
+	p.AgentPoolProfiles = nil
+	expected = ""
+	got = p.GetPrimaryAvailabilitySetName()
+	if got != expected {
+		t.Errorf("expected primary availability set name %s, but got %s", expected, got)
+	}
 }
 
 func TestGetPrimaryScaleSetName(t *testing.T) {
@@ -2756,6 +2777,36 @@ func TestGetPrimaryScaleSetName(t *testing.T) {
 
 	expected := "k8s-agentpool-28513887-vmss"
 	got := p.GetPrimaryScaleSetName()
+	if got != expected {
+		t.Errorf("expected primary scaleset name %s, but got %s", expected, got)
+	}
+
+	// Test with Windows agentpool
+	p.AgentPoolProfiles[0].OSType = "Windows"
+
+	expected = "2851k8s00"
+	got = p.GetPrimaryScaleSetName()
+	if got != expected {
+		t.Errorf("expected primary scaleset name %s, but got %s", expected, got)
+	}
+
+	p.AgentPoolProfiles = []*AgentPoolProfile{
+		{
+			Name:                "agentpool",
+			VMSize:              "Standard_D2_v2",
+			Count:               1,
+			AvailabilityProfile: AvailabilitySet,
+		},
+	}
+	expected = ""
+	got = p.GetPrimaryScaleSetName()
+	if got != expected {
+		t.Errorf("expected primary availability set name %s, but got %s", expected, got)
+	}
+
+	p.AgentPoolProfiles = nil
+	expected = ""
+	got = p.GetPrimaryScaleSetName()
 	if got != expected {
 		t.Errorf("expected primary availability set name %s, but got %s", expected, got)
 	}
@@ -3086,7 +3137,7 @@ func TestProperties_GetClusterMetadata(t *testing.T) {
 		t.Errorf("expected PrimaryAvailabilitySetName name %s, but got %s", expectedPrimaryAvailabilitySetName, metadata.PrimaryAvailabilitySetName)
 	}
 
-	expectedPrimaryScaleSetName := "k8s-agentpool-28513887-vmss"
+	expectedPrimaryScaleSetName := ""
 	if metadata.PrimaryScaleSetName != expectedPrimaryScaleSetName {
 		t.Errorf("expected PrimaryScaleSetName name %s, but got %s", expectedPrimaryScaleSetName, metadata.PrimaryScaleSetName)
 	}
@@ -3196,7 +3247,7 @@ func TestGetAgentPoolIndexByName(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			actual := test.properties.getAgentPoolIndexByName(test.profileName)
+			actual := test.properties.GetAgentPoolIndexByName(test.profileName)
 
 			if actual != test.expectedIndex {
 				t.Errorf("expected agent pool index %d, but got %d", test.expectedIndex, actual)
@@ -3332,7 +3383,7 @@ func TestGetAgentVMPrefix(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			p := test.properties
-			actual := p.GetAgentVMPrefix(test.profile)
+			actual := p.GetAgentVMPrefix(test.profile, p.GetAgentPoolIndexByName(test.profile.Name))
 
 			if actual != test.expectedVMPrefix {
 				t.Errorf("expected agent VM name %s, but got %s", test.expectedVMPrefix, actual)

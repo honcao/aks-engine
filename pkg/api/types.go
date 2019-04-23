@@ -532,6 +532,7 @@ type AgentPoolProfile struct {
 	VnetCidrs                           []string             `json:"vnetCidrs,omitempty"`
 	PreserveNodesProperties             *bool                `json:"preserveNodesProperties,omitempty"`
 	WindowsNameVersion                  string               `json:"windowsNameVersion,omitempty"`
+	EnableVMSSNodePublicIP              *bool                `json:"enableVMSSNodePublicIP,omitempty"`
 }
 
 // AgentPoolProfileRole represents an agent role
@@ -819,7 +820,8 @@ func (p *Properties) K8sOrchestratorName() string {
 	return ""
 }
 
-func (p *Properties) getAgentPoolIndexByName(name string) int {
+// GetAgentPoolIndexByName returns the index of the provided agentpool.
+func (p *Properties) GetAgentPoolIndexByName(name string) int {
 	index := -1
 	for i, profile := range p.AgentPoolProfiles {
 		if profile.Name == name {
@@ -830,9 +832,8 @@ func (p *Properties) getAgentPoolIndexByName(name string) int {
 	return index
 }
 
-// GetAgentVMPrefix returns the VM prefix for an agentpool
-func (p *Properties) GetAgentVMPrefix(a *AgentPoolProfile) string {
-	index := p.getAgentPoolIndexByName(a.Name)
+// GetAgentVMPrefix returns the VM prefix for an agentpool.
+func (p *Properties) GetAgentVMPrefix(a *AgentPoolProfile, index int) string {
 	nameSuffix := p.GetClusterID()
 	vmPrefix := ""
 	if index != -1 {
@@ -898,12 +899,22 @@ func (p *Properties) GetNSGName() string {
 
 // GetPrimaryAvailabilitySetName returns the name of the primary availability set of the cluster
 func (p *Properties) GetPrimaryAvailabilitySetName() string {
-	return p.AgentPoolProfiles[0].Name + "-availabilitySet-" + p.GetClusterID()
+	if len(p.AgentPoolProfiles) > 0 {
+		if p.AgentPoolProfiles[0].AvailabilityProfile == AvailabilitySet {
+			return p.AgentPoolProfiles[0].Name + "-availabilitySet-" + p.GetClusterID()
+		}
+	}
+	return ""
 }
 
 // GetPrimaryScaleSetName returns the name of the primary scale set node of the cluster
 func (p *Properties) GetPrimaryScaleSetName() string {
-	return p.K8sOrchestratorName() + "-" + p.AgentPoolProfiles[0].Name + "-" + p.GetClusterID() + "-vmss"
+	if len(p.AgentPoolProfiles) > 0 {
+		if p.AgentPoolProfiles[0].AvailabilityProfile == VirtualMachineScaleSets {
+			return p.GetAgentVMPrefix(p.AgentPoolProfiles[0], 0)
+		}
+	}
+	return ""
 }
 
 // IsHostedMasterProfile returns true if the cluster has a hosted master
@@ -987,7 +998,7 @@ func (p *Properties) GetClusterID() string {
 			h.Write([]byte(p.MasterProfile.DNSPrefix))
 		} else if p.HostedMasterProfile != nil {
 			h.Write([]byte(p.HostedMasterProfile.DNSPrefix))
-		} else {
+		} else if len(p.AgentPoolProfiles) > 0 {
 			h.Write([]byte(p.AgentPoolProfiles[0].Name))
 		}
 		r := rand.New(rand.NewSource(int64(h.Sum64())))

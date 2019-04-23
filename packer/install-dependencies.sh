@@ -4,17 +4,12 @@ source /home/packer/provision_source.sh
 source /home/packer/cis.sh
 
 RELEASE_NOTES_FILEPATH=/var/log/azure/golden-image-install.complete
-SYSCTL_CONFIG_SRC=/home/packer/sysctl-d-60-CIS.conf
-SYSCTL_CONFIG_DEST=/etc/sysctl.d/60-CIS.conf
-ETC_ISSUE_CONFIG_SRC=/home/packer/etc-issue
-ETC_ISSUE_CONFIG_DEST=/etc/issue
 
 echo "Starting build on " `date` > ${RELEASE_NOTES_FILEPATH}
 echo "Using kernel:" >> ${RELEASE_NOTES_FILEPATH}
 cat /proc/version | tee -a ${RELEASE_NOTES_FILEPATH}
-cp $SYSCTL_CONFIG_SRC $SYSCTL_CONFIG_DEST
-sysctl_reload 20 5 10
-cp $ETC_ISSUE_CONFIG_SRC $ETC_ISSUE_CONFIG_DEST
+
+copyPackerFiles
 
 echo ""
 echo "Components downloaded in this VHD build (some of the below components might get deleted during cluster provisioning if they are not needed):" >> ${RELEASE_NOTES_FILEPATH}
@@ -28,6 +23,7 @@ cat << EOF >> ${RELEASE_NOTES_FILEPATH}
   - cgroup-lite
   - cifs-utils
   - conntrack
+  - cracklib-runtime
   - ebtables
   - ethtool
   - fuse
@@ -38,6 +34,8 @@ cat << EOF >> ${RELEASE_NOTES_FILEPATH}
   - ipset
   - iptables
   - jq
+  - libpam-pwquality
+  - libpwquality-tools
   - mount
   - nfs-common
   - pigz socat
@@ -355,22 +353,33 @@ K8S_VERSIONS="
 1.12.7
 1.12.6
 1.11.9
+1.11.9-azs
 1.11.8
+1.11.8-azs
 1.10.13
 1.10.12
 1.9.11
 1.9.10
 "
 for KUBERNETES_VERSION in ${K8S_VERSIONS}; do
-    HYPERKUBE_URL="k8s.gcr.io/hyperkube-amd64:v${KUBERNETES_VERSION}"
+    if [[ $KUBERNETES_VERSION == *"azs"* ]]; then
+      HYPERKUBE_URL="msazurestackdocker/hyperkube-amd64:v${KUBERNETES_VERSION}"
+    else
+      HYPERKUBE_URL="k8s.gcr.io/hyperkube-amd64:v${KUBERNETES_VERSION}"
+      CONTAINER_IMAGE="k8s.gcr.io/cloud-controller-manager-amd64:v${KUBERNETES_VERSION}"
+      pullContainerImage "docker" ${CONTAINER_IMAGE}
+      echo "  - ${CONTAINER_IMAGE}" >> ${RELEASE_NOTES_FILEPATH}
+    fi
     extractHyperkube "docker"
-    CONTAINER_IMAGE="k8s.gcr.io/cloud-controller-manager-amd64:v${KUBERNETES_VERSION}"
-    pullContainerImage "docker" ${CONTAINER_IMAGE}
     echo "  - ${HYPERKUBE_URL}" >> ${RELEASE_NOTES_FILEPATH}
-    echo "  - ${CONTAINER_IMAGE}" >> ${RELEASE_NOTES_FILEPATH}
 done
 
 df -h
+
+# warn at 75% space taken
+[ -s $(df -P | grep '/dev/sda1' | awk '0+$5 >= 75 {print}') ] || echo "WARNING: 75% of /dev/sda1 is used" >> ${RELEASE_NOTES_FILEPATH}
+# error at 90% space taken
+[ -s $(df -P | grep '/dev/sda1' | awk '0+$5 >= 90 {print}') ] || exit 1
 
 echo "Install completed successfully on " `date` >> ${RELEASE_NOTES_FILEPATH}
 echo "VSTS Build NUMBER: ${BUILD_NUMBER}" >> ${RELEASE_NOTES_FILEPATH}

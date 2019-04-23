@@ -160,7 +160,7 @@ const (
 	kubernetesMasterGenerateProxyCertsScript = "k8s/cloud-init/artifacts/generateproxycerts.sh"
 	kubernetesCustomSearchDomainsScript      = "k8s/cloud-init/artifacts/setup-custom-search-domains.sh"
 	sshdConfig                               = "k8s/cloud-init/artifacts/sshd_config"
-	systemConf                               = "k8s/cloud-init/artifacts/system.conf"
+	sshdConfig1604                           = "k8s/cloud-init/artifacts/sshd_config_1604"
 	kubeletSystemdService                    = "k8s/cloud-init/artifacts/kubelet.service"
 	kmsSystemdService                        = "k8s/cloud-init/artifacts/kms.service"
 	aptPreferences                           = "k8s/cloud-init/artifacts/apt-preferences"
@@ -168,7 +168,13 @@ const (
 	systemdBPFMount                          = "k8s/cloud-init/artifacts/sys-fs-bpf.mount"
 	etcdSystemdService                       = "k8s/cloud-init/artifacts/etcd.service"
 	etcIssue                                 = "k8s/cloud-init/artifacts/etc-issue"
+	etcIssueNet                              = "k8s/cloud-init/artifacts/etc-issue.net"
 	cisNetEnforcement                        = "k8s/cloud-init/artifacts/sysctl-d-60-CIS.conf"
+	cisLogEnforcement                        = "k8s/cloud-init/artifacts/rsyslog-d-60-CIS.conf"
+	modprobeConfCIS                          = "k8s/cloud-init/artifacts/modprobe-CIS.conf"
+	pwQuality                                = "k8s/cloud-init/artifacts/pwquality-CIS.conf"
+	defaultGrub                              = "k8s/cloud-init/artifacts/default-grub"
+	pamDotDSU                                = "k8s/cloud-init/artifacts/pam-d-su"
 )
 
 const (
