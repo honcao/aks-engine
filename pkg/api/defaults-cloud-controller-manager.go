@@ -17,7 +17,7 @@ func (cs *ContainerService) setCloudControllerManagerConfig() {
 		"--cluster-cidr":           o.KubernetesConfig.ClusterSubnet,
 		"--kubeconfig":             "/var/lib/kubelet/kubeconfig",
 		"--leader-elect":           "true",
-		"--v":                      "2",
+		"--v":                      "15",
 	}
 
 	// Set --cluster-name based on appropriate DNS prefix

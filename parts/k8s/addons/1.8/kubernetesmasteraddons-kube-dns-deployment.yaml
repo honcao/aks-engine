@@ -78,7 +78,7 @@ spec:
       - args:
         - "--domain=<domain>."
         - "--dns-port=10053"
-        - "--v=2"
+        - "--v=15"
         - "--config-dir=/kube-dns-config"
         env:
         - name: PROMETHEUS_PORT

@@ -1,0 +1,1 @@
+./aks-engine deploy ./1.13.json --subscription-id b03514ce-dfaa-4cd4-b87b-7f142e60d051 --client-id bb05a26a-b6a2-4362-94ae-50501a67a7eb --client-secret ytRgvBLb4ICHB1nsyZ7JdqYUWbJRTBLsHmPRTZJmLYI= --azure-env AzureStackCloud --location redmond

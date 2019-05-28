@@ -11,7 +11,7 @@ var staticSchedulerConfig = map[string]string{
 
 // defaultSchedulerConfig provides targeted defaults, but is user-overridable
 var defaultSchedulerConfig = map[string]string{
-	"--v":         "2",
+	"--v":         "15",
 	"--profiling": DefaultKubernetesSchedulerEnableProfiling,
 }
 

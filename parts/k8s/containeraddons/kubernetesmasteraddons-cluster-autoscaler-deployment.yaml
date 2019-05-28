@@ -166,7 +166,7 @@ spec:
             memory: {{ContainerMemReqs "cluster-autoscaler"}}
         command:
         - ./cluster-autoscaler
-        - --v=3
+        - --v=15
         - --logtostderr=true
         - --cloud-provider=azure
         - --skip-nodes-with-local-storage=false

@@ -1,0 +1,51 @@
+{
+    "apiVersion": "vlabs",
+    "location": "redmond",
+    "properties": {
+        "orchestratorProfile": {
+            "orchestratorType": "Kubernetes",
+            "orchestratorRelease": "1.13",
+            "orchestratorVersion": "1.13.6",
+            "kubernetesConfig": {
+                "kubernetesImageBase": "msazurestackqa/",
+                "useInstanceMetadata": false,
+                "networkPlugin": "flannel"
+            }
+        },
+        "customCloudProfile": {
+            "portalURL": "https://portal.redmond.ext-n31r1210.masd.stbtest.microsoft.com/"
+        },
+        "masterProfile": {
+            "dnsPrefix": "k113002",
+            "distro": "ubuntu",
+            "osDiskSizeGB": 200,
+            "count": 3,
+            "vmSize": "Standard_D2_v2"
+        },
+        "agentPoolProfiles": [
+            {
+                "name": "linuxpool",
+                "osDiskSizeGB": 200,
+                "count": 3,
+                "vmSize": "Standard_D2_v2",
+                "distro": "ubuntu",
+                "availabilityProfile": "AvailabilitySet",
+                "AcceleratedNetworkingEnabled": false
+            }
+        ],
+        "linuxProfile": {
+            "adminUsername": "azureuser",
+            "ssh": {
+                "publicKeys": [
+                    {
+                        "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCs2rfBsazAeTj/92Itvb9QdoUMcTzmsQf/BJszDZxHKKRfZGs12KJZ3VbBYB+/YFehU2eXlLXDc+5qeVKlvistLGuEUGSLtCHBmndpBNtNN2862ugCrkgfVaiBxVvTmAOzAUcZvLUfxL/60vnLCHgY+NY02jguEo+yQ/Hew8ISJXacddDTerpeBO4Vn4MXJWl0LiSKQ5wjrLVelaAronkK0OwPqBQ1LIDCjtNxwhcpukUp8Y3xVCBvFwusHFj5jszQKZT6qe4O1hHk0KnIU/sJcBjgdk6cmCxSTbZj5wn9KpOl+oz62skWLe76JUUeqhoW5qmSrTOwtlZe3vh4I+sT N31R1210-DVM+Administrator@n31r1210-DVM"
+                    }
+                ]
+            }
+        },
+        "servicePrincipalProfile": {
+            "clientId": "bb05a26a-b6a2-4362-94ae-50501a67a7eb",
+            "secret": "ytRgvBLb4ICHB1nsyZ7JdqYUWbJRTBLsHmPRTZJmLYI="
+        }
+    }
+}

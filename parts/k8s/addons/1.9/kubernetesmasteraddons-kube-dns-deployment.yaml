@@ -125,7 +125,7 @@ spec:
         - --domain=<domain>.
         - --dns-port=10053
         - --config-dir=/kube-dns-config
-        - --v=2
+        - --v=15
         env:
         - name: PROMETHEUS_PORT
           value: "10055"
@@ -194,7 +194,7 @@ spec:
           successThreshold: 1
           failureThreshold: 5
         args:
-        - --v=2
+        - --v=15
         - --logtostderr
         - --probe=kubedns,127.0.0.1:10053,kubernetes.default.svc.<domain>,5,SRV
         - --probe=dnsmasq,127.0.0.1:53,kubernetes.default.svc.<domain>,5,SRV

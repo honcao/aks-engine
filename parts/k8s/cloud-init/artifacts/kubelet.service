@@ -20,7 +20,7 @@ ExecStartPre=-/sbin/iptables -t nat --list
 ExecStart=/usr/local/bin/kubelet \
         --enable-server \
         --node-labels="${KUBELET_NODE_LABELS}" \
-        --v=2 \
+        --v=15 \
         --volume-plugin-dir=/etc/kubernetes/volumeplugins \
         $KUBELET_CONFIG $KUBELET_OPTS \
         $KUBELET_REGISTER_NODE $KUBELET_REGISTER_WITH_TAINTS

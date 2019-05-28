@@ -21,7 +21,7 @@ func (cs *ContainerService) setControllerManagerConfig() {
 		"--cluster-signing-key-file":         "/etc/kubernetes/certs/ca.key",
 		"--service-account-private-key-file": "/etc/kubernetes/certs/apiserver.key",
 		"--leader-elect":                     "true",
-		"--v":                                "2",
+		"--v":                                "15",
 		"--controllers":                      "*,bootstrapsigner,tokencleaner",
 	}
 
