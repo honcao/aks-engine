@@ -65,7 +65,13 @@ func newGenerateCmd() *cobra.Command {
 			if err := gc.loadAPIModel(); err != nil {
 				return errors.Wrap(err, "loading API model in generateCmd")
 			}
-
+			if gc.apiVersion == "vlabs" {
+				if err := gc.validateAPIModelAsVLabs(); err != nil {
+					return errors.Wrap(err, "validating API model after populating values")
+				}
+			} else {
+				log.Warnf("API model validation is only available for \"apiVersion\": \"vlabs\", skipping validation...")
+			}
 			return gc.run()
 		},
 	}
@@ -141,7 +147,7 @@ func (gc *generateCmd) loadAPIModel() error {
 			Locale: gc.locale,
 		},
 	}
-	gc.containerService, gc.apiVersion, err = apiloader.LoadContainerServiceFromFile(gc.apimodelPath, true, false, nil)
+	gc.containerService, gc.apiVersion, err = apiloader.LoadContainerServiceFromFile(gc.apimodelPath, false, false, nil)
 	if err != nil {
 		return errors.Wrap(err, "error parsing the api model")
 	}
@@ -175,15 +181,30 @@ func (gc *generateCmd) loadAPIModel() error {
 		prop.CertificateProfile.CaPrivateKey = string(caKeyBytes)
 	}
 
-	// set the client id and client secret
-	if (gc.containerService.Properties.ServicePrincipalProfile == nil || ((gc.containerService.Properties.ServicePrincipalProfile.ClientID == "" || gc.containerService.Properties.ServicePrincipalProfile.ClientID == "00000000-0000-0000-0000-000000000000") && gc.containerService.Properties.ServicePrincipalProfile.Secret == "")) && gc.ClientID.String() != "" && gc.ClientSecret != "" {
-		gc.containerService.Properties.ServicePrincipalProfile = &api.ServicePrincipalProfile{
-			ClientID: gc.ClientID.String(),
-			Secret:   gc.ClientSecret,
+	if err = gc.autofillApimodel(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (gc *generateCmd) autofillApimodel() error {
+	// set the client id and client secret by command flags
+	k8sConfig := gc.containerService.Properties.OrchestratorProfile.KubernetesConfig
+	useManagedIdentity := k8sConfig != nil && k8sConfig.UseManagedIdentity
+	if !useManagedIdentity {
+		if (gc.containerService.Properties.ServicePrincipalProfile == nil || ((gc.containerService.Properties.ServicePrincipalProfile.ClientID == "" || gc.containerService.Properties.ServicePrincipalProfile.ClientID == "00000000-0000-0000-0000-000000000000") && gc.containerService.Properties.ServicePrincipalProfile.Secret == "")) && gc.ClientID.String() != "" && gc.ClientSecret != "" {
+			gc.containerService.Properties.ServicePrincipalProfile = &api.ServicePrincipalProfile{
+				ClientID: gc.ClientID.String(),
+				Secret:   gc.ClientSecret,
+			}
 		}
 	}
-
 	return nil
+}
+
+// validateAPIModelAsVLabs converts the ContainerService object to a vlabs ContainerService object and validates it
+func (gc *generateCmd) validateAPIModelAsVLabs() error {
+	return api.ConvertContainerServiceToVLabs(gc.containerService).Validate(false)
 }
 
 func (gc *generateCmd) run() error {

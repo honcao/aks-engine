@@ -15,7 +15,7 @@ func TestNewGenerateCmd(t *testing.T) {
 		t.Fatalf("generate command should have use %s equal %s, short %s equal %s and long %s equal to %s", command.Use, generateName, command.Short, generateShortDescription, command.Long, generateLongDescription)
 	}
 
-	expectedFlags := []string{"api-model", "output-directory", "ca-certificate-path", "ca-private-key-path", "set", "no-pretty-print", "parameters-only"}
+	expectedFlags := []string{"api-model", "output-directory", "ca-certificate-path", "ca-private-key-path", "set", "no-pretty-print", "parameters-only", "client-id", "client-secret"}
 	for _, f := range expectedFlags {
 		if command.Flags().Lookup(f) == nil {
 			t.Fatalf("generate command should have flag %s", f)
