@@ -13,6 +13,7 @@ import (
 	"github.com/Azure/aks-engine/pkg/engine"
 	"github.com/Azure/aks-engine/pkg/engine/transform"
 	"github.com/Azure/aks-engine/pkg/i18n"
+	"github.com/gofrs/uuid"
 	"github.com/leonelquinteros/gotext"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -38,6 +39,11 @@ type generateCmd struct {
 	containerService *api.ContainerService
 	apiVersion       string
 	locale           *gotext.Locale
+
+	rawClientID string
+
+	ClientID     uuid.UUID
+	ClientSecret string
 }
 
 func newGenerateCmd() *cobra.Command {
@@ -72,7 +78,8 @@ func newGenerateCmd() *cobra.Command {
 	f.StringArrayVar(&gc.set, "set", []string{}, "set values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
 	f.BoolVar(&gc.noPrettyPrint, "no-pretty-print", false, "skip pretty printing the output")
 	f.BoolVar(&gc.parametersOnly, "parameters-only", false, "only output parameters files")
-
+	f.StringVar(&gc.rawClientID, "client-id", "", "client id")
+	f.StringVar(&gc.ClientSecret, "client-secret", "", "client secret")
 	return generateCmd
 }
 
@@ -99,6 +106,8 @@ func (gc *generateCmd) validate(cmd *cobra.Command, args []string) error {
 	if _, err := os.Stat(gc.apimodelPath); os.IsNotExist(err) {
 		return errors.Errorf("specified api model does not exist (%s)", gc.apimodelPath)
 	}
+
+	gc.ClientID, _ = uuid.FromString(gc.rawClientID)
 
 	return nil
 }
@@ -164,6 +173,14 @@ func (gc *generateCmd) loadAPIModel() error {
 		}
 		prop.CertificateProfile.CaCertificate = string(caCertificateBytes)
 		prop.CertificateProfile.CaPrivateKey = string(caKeyBytes)
+	}
+
+	// set the client id and client secret
+	if (gc.containerService.Properties.ServicePrincipalProfile == nil || ((gc.containerService.Properties.ServicePrincipalProfile.ClientID == "" || gc.containerService.Properties.ServicePrincipalProfile.ClientID == "00000000-0000-0000-0000-000000000000") && gc.containerService.Properties.ServicePrincipalProfile.Secret == "")) && gc.ClientID.String() != "" && gc.ClientSecret != "" {
+		gc.containerService.Properties.ServicePrincipalProfile = &api.ServicePrincipalProfile{
+			ClientID: gc.ClientID.String(),
+			Secret:   gc.ClientSecret,
+		}
 	}
 
 	return nil
