@@ -255,6 +255,8 @@ write_files:
 {{end}}
 {{if IsAzureStackCloud }}
     AZURE_ENVIRONMENT_FILEPATH=/etc/kubernetes/azurestackcloud.json
+    AZURE_GO_SDK_LOG_LEVEL="DEBUG"
+    AZURE_GO_SDK_LOG_FILE="/root/sdklog.txt"
 {{end}}
 
 - path: /opt/azure/containers/kubelet.sh

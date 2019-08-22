@@ -17,6 +17,10 @@ spec:
       env:
       - name: AZURE_ENVIRONMENT_FILEPATH
         value: "/etc/kubernetes/azurestackcloud.json"
+      - name: AZURE_GO_SDK_LOG_LEVEL
+        value: "DEBUG"
+      - name: AZURE_GO_SDK_LOG_FILE
+        value: "/root/sdklog.txt"
       volumeMounts:
         - name: etc-kubernetes
           mountPath: /etc/kubernetes
