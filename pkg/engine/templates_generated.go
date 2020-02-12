@@ -39507,7 +39507,7 @@ write_files:
       {{if IsMasterVirtualMachineScaleSets}}
         server: <SERVERIP>
       {{else}}
-        server: {{WrapAsVerbatim "concat('https://', variables('masterPrivateIpAddrs')[copyIndex(variables('masterOffset'))], ':443')"}}
+        server: https://localhost:443
       {{end}}
     users:
     - name: client
