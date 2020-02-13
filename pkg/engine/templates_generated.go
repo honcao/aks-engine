@@ -33229,7 +33229,7 @@ spec:
   hostNetwork: true
   containers:
     - name: kube-controller-manager
-      image: {{GetCCMImageReference}}
+      image: {{GetHyperkubeImageReference}}
       imagePullPolicy: IfNotPresent
       command: ["/hyperkube", "kube-controller-manager"]
       args: [{{GetK8sRuntimeConfigKeyVals .Properties.OrchestratorProfile.KubernetesConfig.ControllerManagerConfig}}]
