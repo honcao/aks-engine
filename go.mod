@@ -1,4 +1,4 @@
-module github.com/Azure/aks-engine
+module github.com/honcao/aks-engine
 
 go 1.12
 
