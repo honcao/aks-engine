@@ -525,7 +525,8 @@ type MasterProfile struct {
 	// Not used during PUT, returned as part of GET
 	FQDN string `json:"fqdn,omitempty"`
 	// True: uses cosmos etcd endpoint instead of installing etcd on masters
-	CosmosEtcd *bool `json:"cosmosEtcd,omitempty"`
+	CosmosEtcd          *bool `json:"cosmosEtcd,omitempty"`
+	IsStandaloneKubelet *bool `json:"isStandaloneKubelet,omitempty"`
 }
 
 // ImageReference represents a reference to an Image resource in Azure.

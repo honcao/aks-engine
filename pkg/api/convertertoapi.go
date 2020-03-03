@@ -540,6 +540,7 @@ func convertVLabsMasterProfile(vlabs *vlabs.MasterProfile, api *MasterProfile) {
 	api.SinglePlacementGroup = vlabs.SinglePlacementGroup
 	api.CosmosEtcd = vlabs.CosmosEtcd
 	api.AuditDEnabled = vlabs.AuditDEnabled
+	api.IsStandaloneKubelet = vlabs.IsStandaloneKubelet
 	convertCustomFilesToAPI(vlabs, api)
 }
 

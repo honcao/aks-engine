@@ -113,6 +113,7 @@ const (
 	kubernetesMasterGenerateProxyCertsScript = "k8s/cloud-init/artifacts/generateproxycerts.sh"
 	kubernetesCustomSearchDomainsScript      = "k8s/cloud-init/artifacts/setup-custom-search-domains.sh"
 	kubeletSystemdService                    = "k8s/cloud-init/artifacts/kubelet.service"
+	kubeletSystemdStandaloneService          = "k8s/cloud-init/artifacts/kubelet-standalone.service"
 	kmsSystemdService                        = "k8s/cloud-init/artifacts/kms.service"
 	aptPreferences                           = "k8s/cloud-init/artifacts/apt-preferences"
 	dockerClearMountPropagationFlags         = "k8s/cloud-init/artifacts/docker_clear_mount_propagation_flags.conf"

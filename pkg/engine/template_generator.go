@@ -257,6 +257,9 @@ func getContainerServiceFuncMap(cs *api.ContainerService) template.FuncMap {
 		"IsAzureStackCloud": func() bool {
 			return cs.Properties.IsAzureStackCloud()
 		},
+		"GetPodInfraContainerImage": func() string {
+			return cs.Properties.OrchestratorProfile.KubernetesConfig.KubeletConfig["--pod-infra-container-image"]
+		},
 		"IsMultiMasterCluster": func() bool {
 			return cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.HasMultipleNodes()
 		},
