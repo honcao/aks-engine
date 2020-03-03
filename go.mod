@@ -3,7 +3,6 @@ module github.com/honcao/aks-engine
 go 1.12
 
 require (
-	github.com/Azure/aks-engine v0.0.0-00010101000000-000000000000
 	github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.9.2
 	github.com/Azure/go-autorest/autorest/adal v0.8.0
@@ -37,7 +36,3 @@ require (
 	k8s.io/apimachinery v0.0.0-20190221213512-86fb29eff628
 	k8s.io/client-go v10.0.0+incompatible
 )
-
-replace github.com/Azure/aks-engine/pkg => /Users/hongbincao/Documents/aks-engine/src/github.com/Azure/aks-engine/pkg
-
-replace github.com/Azure/aks-engine => /Users/hongbincao/Documents/aks-engine/src/github.com/Azure/aks-engine
