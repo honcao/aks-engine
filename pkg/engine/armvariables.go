@@ -196,7 +196,7 @@ func getK8sMasterVars(cs *api.ContainerService) (map[string]interface{}, error) 
 	}
 
 	if masterProfile != nil && masterProfile.IsStandaloneKubelet != nil && *masterProfile.IsStandaloneKubelet == true {
-		cloudInitFiles[kubeletSystemdService] = getBase64EncodedGzippedCustomScript(kubeletSystemdStandaloneService, cs)
+		cloudInitFiles["kubeletSystemdService"] = getBase64EncodedGzippedCustomScript(kubeletSystemdStandaloneService, cs)
 	}
 
 	if !cs.Properties.IsVHDDistroForAllNodes() {
