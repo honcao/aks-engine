@@ -13794,9 +13794,7 @@ ExecStartPre=/bin/bash -c "if [ $(nproc) -gt 8 ]; then /sbin/sysctl -w net.ipv4.
 ExecStartPre=-/sbin/ebtables -t nat --list
 ExecStartPre=-/sbin/iptables -t nat --numeric --list
 ExecStart=/usr/local/bin/kubelet \
-        --allow-privileged=true  \
-        --pod-manifest-path=/etc/kubernetes/manifests \
-        --pod-infra-container-image={{GetPodInfraContainerImage}} \
+        {{GetStandaloneKubeletConfig}} \
         --v=2 
         
 [Install]
@@ -15105,13 +15103,21 @@ MASTER_CONTAINER_ADDONS_PLACEHOLDER
   {{end}}
 {{end}}
     #EOF
-
+    
 {{if IsAzureStackCloud}}
 - path: "/etc/kubernetes/azurestackcloud.json"
   permissions: "0600"
   owner: "root"
   content: |
     {{WrapAsVariable "environmentJSON"}}
+{{end}}
+
+{{if IsStandaloneKubelet}}
+- path: "/etc/kubernetes/azure.overwrite.json"
+  permissions: "0600"
+  owner: "root"
+  content: |
+    {{WrapAsVariable "cloudProviderConfigJSON"}}
 {{end}}
 
 {{if .MasterProfile.IsCoreOS}}

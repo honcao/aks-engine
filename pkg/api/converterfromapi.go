@@ -336,6 +336,42 @@ func convertKubeletConfigToVlabs(a *KubernetesConfig, v *vlabs.KubernetesConfig)
 	}
 }
 
+func convertCloudProviderProfileToVlabs(a *CloudProviderProfile, v *vlabs.CloudProviderProfile) {
+	v.Cloud = a.Cloud
+	v.TenantId = a.TenantId
+	v.SubscriptionId = a.SubscriptionId
+	v.AadClientId = a.AadClientId
+	v.AadClientSecret = a.AadClientSecret
+	v.UseManagedIdentityExtension = a.UseManagedIdentityExtension
+	v.ResourceGroup = a.ResourceGroup
+	v.Location = a.Location
+	v.SubnetName = a.SubnetName
+	v.SecurityGroupName = a.SecurityGroupName
+	v.VnetName = a.VnetName
+	v.VnetResourceGroup = a.VnetResourceGroup
+	v.RouteTableName = a.RouteTableName
+	v.PrimaryAvailabilitySetName = a.PrimaryAvailabilitySetName
+	v.PrimaryScaleSetName = a.PrimaryScaleSetName
+	v.VMType = a.VMType
+	v.LoadBalancerSku = a.LoadBalancerSku
+	v.MaximumLoadBalancerRuleCount = a.MaximumLoadBalancerRuleCount
+	v.DisableOutboundSNAT = a.DisableOutboundSNAT
+	v.CloudProviderBackoffMode = a.CloudProviderBackoffMode
+	v.CloudProviderBackoff = a.CloudProviderBackoff
+	v.CloudProviderBackoffRetries = a.CloudProviderBackoffRetries
+	v.CloudProviderBackoffJitter = a.CloudProviderBackoffJitter
+	v.CloudProviderBackoffDuration = a.CloudProviderBackoffDuration
+	v.CloudProviderBackoffExponent = a.CloudProviderBackoffExponent
+	v.CloudProviderRateLimit = a.CloudProviderRateLimit
+	v.CloudProviderRateLimitQPS = a.CloudProviderRateLimitQPS
+	v.CloudProviderRateLimitBucket = a.CloudProviderRateLimitBucket
+	v.CloudProviderRateLimitQPSWrite = a.CloudProviderRateLimitQPSWrite
+	v.CloudProviderRateLimitBucketWrite = a.CloudProviderRateLimitBucketWrite
+	v.UserAssignedIdentityID = a.UserAssignedIdentityID
+	v.UseInstanceMetadata = a.UseInstanceMetadata
+	v.ExcludeMasterFromStandardLB = a.ExcludeMasterFromStandardLB
+}
+
 func convertCustomFilesToVlabs(a *MasterProfile, v *vlabs.MasterProfile) {
 	if a.CustomFiles != nil {
 		v.CustomFiles = &[]vlabs.CustomFile{}
@@ -490,6 +526,10 @@ func convertMasterProfileToVLabs(api *MasterProfile, vlabsProfile *vlabs.MasterP
 	vlabsProfile.AuditDEnabled = api.AuditDEnabled
 	vlabsProfile.IsStandaloneKubelet = api.IsStandaloneKubelet
 	convertCustomFilesToVlabs(api, vlabsProfile)
+	if api.CloudProviderProfileOverride != nil {
+		vlabsProfile.CloudProviderProfileOverride = &vlabs.CloudProviderProfile{}
+		convertCloudProviderProfileToVlabs(api.CloudProviderProfileOverride, vlabsProfile.CloudProviderProfileOverride)
+	}
 }
 
 func convertKeyVaultSecretsToVlabs(api *KeyVaultSecrets, vlabsSecrets *vlabs.KeyVaultSecrets) {

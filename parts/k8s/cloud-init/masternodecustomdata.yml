@@ -479,13 +479,21 @@ MASTER_CONTAINER_ADDONS_PLACEHOLDER
   {{end}}
 {{end}}
     #EOF
-
+    
 {{if IsAzureStackCloud}}
 - path: "/etc/kubernetes/azurestackcloud.json"
   permissions: "0600"
   owner: "root"
   content: |
     {{WrapAsVariable "environmentJSON"}}
+{{end}}
+
+{{if IsStandaloneKubelet}}
+- path: "/etc/kubernetes/azure.overwrite.json"
+  permissions: "0600"
+  owner: "root"
+  content: |
+    {{WrapAsVariable "cloudProviderConfigJSON"}}
 {{end}}
 
 {{if .MasterProfile.IsCoreOS}}

@@ -525,8 +525,46 @@ type MasterProfile struct {
 	// Not used during PUT, returned as part of GET
 	FQDN string `json:"fqdn,omitempty"`
 	// True: uses cosmos etcd endpoint instead of installing etcd on masters
-	CosmosEtcd          *bool `json:"cosmosEtcd,omitempty"`
-	IsStandaloneKubelet *bool `json:"isStandaloneKubelet,omitempty"`
+	CosmosEtcd                   *bool                 `json:"cosmosEtcd,omitempty"`
+	IsStandaloneKubelet          *bool                 `json:"isStandaloneKubelet,omitempty"`
+	CloudProviderProfileOverride *CloudProviderProfile `json:"cloudProviderProfileOverride,omitempty"`
+}
+
+//CloudProviderProfile represents the definition of cloud provider profile
+type CloudProviderProfile struct {
+	Cloud                             string   `json:"cloud,omitempty" bson:"cloud,omitempty" yaml:"cloud,omitempty"`
+	TenantId                          string   `json:"tenantId,omitempty" bson:"tenantId,omitempty" yaml:"tenantId,omitempty"`
+	SubscriptionId                    string   `json:"subscriptionId,omitempty" bson:"subscriptionId,omitempty" yaml:"subscriptionId,omitempty"`
+	AadClientId                       string   `json:"aadClientId,omitempty" bson:"aadClientId,omitempty" yaml:"aadClientId,omitempty"`
+	AadClientSecret                   string   `json:"aadClientSecret,omitempty" bson:"aadClientSecret,omitempty" yaml:"aadClientSecret,omitempty" conform:"redact"`
+	UseManagedIdentityExtension       bool     `json:"useManagedIdentityExtension,omitempty" bson:"useManagedIdentityExtension,omitempty" yaml:"useManagedIdentityExtension,omitempty"`
+	ResourceGroup                     string   `json:"resourceGroup,omitempty" bson:"resourceGroup,omitempty" yaml:"resourceGroup,omitempty"`
+	Location                          string   `json:"location,omitempty" bson:"location,omitempty" yaml:"location,omitempty"`
+	VMType                            string   `json:"vmType,omitempty" bson:"vmType,omitempty" yaml:"vmType,omitempty"`
+	SubnetName                        string   `json:"subnetName,omitempty" bson:"subnetName,omitempty" yaml:"subnetName,omitempty"`
+	SecurityGroupName                 string   `json:"securityGroupName,omitempty" bson:"securityGroupName,omitempty" yaml:"securityGroupName,omitempty"`
+	VnetName                          string   `json:"vnetName,omitempty" bson:"vnetName,omitempty" yaml:"vnetName,omitempty"`
+	VnetResourceGroup                 string   `json:"vnetResourceGroup,omitempty" bson:"vnetResourceGroup,omitempty" yaml:"vnetResourceGroup,omitempty"`
+	RouteTableName                    string   `json:"routeTableName,omitempty" bson:"routeTableName,omitempty" yaml:"routeTableName,omitempty"`
+	PrimaryAvailabilitySetName        string   `json:"primaryAvailabilitySetName,omitempty" bson:"primaryAvailabilitySetName,omitempty" yaml:"primaryAvailabilitySetName,omitempty"`
+	PrimaryScaleSetName               string   `json:"primaryScaleSetName,omitempty" bson:"primaryScaleSetName,omitempty" yaml:"primaryScaleSetName,omitempty"`
+	CloudProviderBackoffMode          string   `json:"cloudProviderBackoffMode,omitempty" bson:"cloudProviderBackoffMode,omitempty" yaml:"cloudProviderBackoffMode,omitempty"`
+	CloudProviderBackoff              *bool    `json:"cloudProviderBackoff,omitempty" bson:"cloudProviderBackoff,omitempty" yaml:"cloudProviderBackoff,omitempty"`
+	CloudProviderBackoffRetries       *int     `json:"cloudProviderBackoffRetries,omitempty" bson:"cloudProviderBackoffRetries,omitempty" yaml:"cloudProviderBackoffRetries,omitempty"`
+	CloudProviderBackoffJitter        *float64 `json:"cloudProviderBackoffJitter,omitempty" bson:"cloudProviderBackoffJitter,omitempty" yaml:"cloudProviderBackoffJitter,omitempty"`
+	CloudProviderBackoffDuration      *int     `json:"cloudProviderBackoffDuration,omitempty" bson:"cloudProviderBackoffDuration,omitempty" yaml:"cloudProviderBackoffDuration,omitempty"`
+	CloudProviderBackoffExponent      *float64 `json:"cloudProviderBackoffExponent,omitempty" bson:"cloudProviderBackoffExponent,omitempty" yaml:"cloudProviderBackoffExponent,omitempty"`
+	CloudProviderRateLimit            *bool    `json:"cloudProviderRateLimit,omitempty" bson:"cloudProviderRateLimit,omitempty" yaml:"cloudProviderRateLimit,omitempty"`
+	CloudProviderRateLimitQPS         *float64 `json:"cloudProviderRateLimitQPS,omitempty" bson:"cloudProviderRateLimitQPS,omitempty" yaml:"cloudProviderRateLimitQPS,omitempty"`
+	CloudProviderRateLimitBucket      *int     `json:"cloudProviderRateLimitBucket,omitempty" bson:"cloudProviderRateLimitBucket,omitempty" yaml:"cloudProviderRateLimitBucket,omitempty"`
+	CloudProviderRateLimitQPSWrite    *float64 `json:"cloudProviderRateLimitQPSWrite,omitempty" bson:"cloudProviderRateLimitQPSWrite,omitempty" yaml:"cloudProviderRateLimitQPSWrite,omitempty"`
+	CloudProviderRateLimitBucketWrite *int     `json:"cloudProviderRateLimitBucketWrite,omitempty" bson:"cloudProviderRateLimitBucketWrite,omitempty" yaml:"cloudProviderRateLimitBucketWrite,omitempty"`
+	UserAssignedIdentityID            string   `json:"userAssignedIdentityID,omitempty" bson:"userAssignedIdentityID,omitempty" yaml:"userAssignedIdentityID,omitempty"`
+	UseInstanceMetadata               *bool    `json:"useInstanceMetadata,omitempty" bson:"useInstanceMetadata,omitempty" yaml:"useInstanceMetadata,omitempty"`
+	LoadBalancerSku                   string   `json:"loadBalancerSku,omitempty" bson:"loadBalancerSku,omitempty" yaml:"loadBalancerSku,omitempty"`
+	DisableOutboundSNAT               *bool    `json:"disableOutboundSNAT,omitempty" bson:"disableOutboundSNAT,omitempty" yaml:"disableOutboundSNAT,omitempty"`
+	ExcludeMasterFromStandardLB       *bool    `json:"excludeMasterFromStandardLB,omitempty" bson:"excludeMasterFromStandardLB,omitempty" yaml:"excludeMasterFromStandardLB,omitempty"`
+	MaximumLoadBalancerRuleCount      int      `json:"maximumLoadBalancerRuleCount,omitempty" bson:"maximumLoadBalancerRuleCount,omitempty" yaml:"maximumLoadBalancerRuleCount,omitempty"`
 }
 
 // ImageReference represents a reference to an Image resource in Azure.
@@ -1895,6 +1933,35 @@ func (p *Properties) GetCustomEnvironmentJSON(escape bool) (string, error) {
 		}
 	}
 	return environmentJSON, nil
+}
+
+// GetCloudProviderConfigOverwrite return the JSON format string for custom environment
+func (p *Properties) GetCloudProviderConfigOverwrite(escape bool) (string, error) {
+
+	masterProfile := p.MasterProfile
+	if masterProfile == nil {
+		return "", fmt.Errorf("MasterProfile cloud not be nil when GetCloudProviderConfigOverwrite")
+	}
+
+	if masterProfile.IsStandaloneKubelet == nil || !(*masterProfile.IsStandaloneKubelet) {
+		return "", fmt.Errorf("IsStandaloneKubelet cloud not be nil or false when GetCloudProviderConfigOverwrite")
+	}
+
+	cppo := masterProfile.CloudProviderProfileOverride
+	if cppo == nil {
+		return "", fmt.Errorf("CloudProviderProfileOverride cloud not be nil when GetCloudProviderConfigOverwrite")
+	}
+
+	var cppoJSON string
+	bytes, err := json.Marshal(cppo)
+	if err != nil {
+		return "", fmt.Errorf("Could not serialize Environment object - %s", err.Error())
+	}
+	cppoJSON = string(bytes)
+	if escape {
+		cppoJSON = strings.Replace(cppoJSON, "\"", "\\\"", -1)
+	}
+	return cppoJSON, nil
 }
 
 // GetCustomCloudName returns name of environment if customCloudProfile is provided, returns empty string if customCloudProfile is empty.

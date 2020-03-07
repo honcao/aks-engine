@@ -542,6 +542,46 @@ func convertVLabsMasterProfile(vlabs *vlabs.MasterProfile, api *MasterProfile) {
 	api.AuditDEnabled = vlabs.AuditDEnabled
 	api.IsStandaloneKubelet = vlabs.IsStandaloneKubelet
 	convertCustomFilesToAPI(vlabs, api)
+	if vlabs.CloudProviderProfileOverride != nil {
+		api.CloudProviderProfileOverride = &CloudProviderProfile{}
+		convertVlabsCloudProviderProfile(vlabs.CloudProviderProfileOverride, api.CloudProviderProfileOverride)
+	}
+}
+
+func convertVlabsCloudProviderProfile(v *vlabs.CloudProviderProfile, a *CloudProviderProfile) {
+	a.Cloud = v.Cloud
+	a.TenantId = v.TenantId
+	a.SubscriptionId = v.SubscriptionId
+	a.AadClientId = v.AadClientId
+	a.AadClientSecret = v.AadClientSecret
+	a.UseManagedIdentityExtension = v.UseManagedIdentityExtension
+	a.ResourceGroup = v.ResourceGroup
+	a.Location = v.Location
+	a.SubnetName = v.SubnetName
+	a.SecurityGroupName = v.SecurityGroupName
+	a.VnetName = v.VnetName
+	a.VnetResourceGroup = v.VnetResourceGroup
+	a.RouteTableName = v.RouteTableName
+	a.PrimaryAvailabilitySetName = v.PrimaryAvailabilitySetName
+	a.PrimaryScaleSetName = v.PrimaryScaleSetName
+	a.VMType = v.VMType
+	a.LoadBalancerSku = v.LoadBalancerSku
+	a.MaximumLoadBalancerRuleCount = v.MaximumLoadBalancerRuleCount
+	a.DisableOutboundSNAT = v.DisableOutboundSNAT
+	a.CloudProviderBackoffMode = v.CloudProviderBackoffMode
+	a.CloudProviderBackoff = v.CloudProviderBackoff
+	a.CloudProviderBackoffRetries = v.CloudProviderBackoffRetries
+	a.CloudProviderBackoffJitter = v.CloudProviderBackoffJitter
+	a.CloudProviderBackoffDuration = v.CloudProviderBackoffDuration
+	a.CloudProviderBackoffExponent = v.CloudProviderBackoffExponent
+	a.CloudProviderRateLimit = v.CloudProviderRateLimit
+	a.CloudProviderRateLimitQPS = v.CloudProviderRateLimitQPS
+	a.CloudProviderRateLimitBucket = v.CloudProviderRateLimitBucket
+	a.CloudProviderRateLimitQPSWrite = v.CloudProviderRateLimitQPSWrite
+	a.CloudProviderRateLimitBucketWrite = v.CloudProviderRateLimitBucketWrite
+	a.UserAssignedIdentityID = v.UserAssignedIdentityID
+	a.UseInstanceMetadata = v.UseInstanceMetadata
+	a.ExcludeMasterFromStandardLB = v.ExcludeMasterFromStandardLB
 }
 
 func convertVLabsAgentPoolProfile(vlabs *vlabs.AgentPoolProfile, api *AgentPoolProfile) {

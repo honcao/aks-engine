@@ -257,8 +257,25 @@ func getContainerServiceFuncMap(cs *api.ContainerService) template.FuncMap {
 		"IsAzureStackCloud": func() bool {
 			return cs.Properties.IsAzureStackCloud()
 		},
-		"GetPodInfraContainerImage": func() string {
-			return cs.Properties.OrchestratorProfile.KubernetesConfig.KubeletConfig["--pod-infra-container-image"]
+		"IsStandaloneKubelet": func() bool {
+			if cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.IsStandaloneKubelet != nil {
+				return *cs.Properties.MasterProfile.IsStandaloneKubelet
+			}
+			return false
+		},
+		"GetStandaloneKubeletConfig": func() string {
+			standaloneKubeletConfig := map[string]string{}
+
+			standaloneKubeletConfig["--pod-infra-container-image"] = cs.Properties.OrchestratorProfile.KubernetesConfig.KubeletConfig["--pod-infra-container-image"]
+			standaloneKubeletConfig["--pod-manifest-path"] = cs.Properties.OrchestratorProfile.KubernetesConfig.KubeletConfig["--pod-manifest-path"]
+			if v, ok := cs.Properties.OrchestratorProfile.KubernetesConfig.KubeletConfig["--allow-privileged"]; ok {
+				standaloneKubeletConfig["--allow-privileged"] = v
+			}
+			var buf bytes.Buffer
+			for key := range standaloneKubeletConfig {
+				buf.WriteString(fmt.Sprintf("%s=%s ", key, standaloneKubeletConfig[key]))
+			}
+			return buf.String()
 		},
 		"IsMultiMasterCluster": func() bool {
 			return cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.HasMultipleNodes()

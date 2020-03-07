@@ -35,7 +35,11 @@ func (cs *ContainerService) setControllerManagerConfig() {
 	// Enable cloudprovider if we're not using cloud controller manager
 	if !to.Bool(o.KubernetesConfig.UseCloudControllerManager) {
 		staticControllerManagerConfig["--cloud-provider"] = "azure"
+
 		staticControllerManagerConfig["--cloud-config"] = "/etc/kubernetes/azure.json"
+		if cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.IsStandaloneKubelet != nil && *cs.Properties.MasterProfile.IsStandaloneKubelet {
+			staticControllerManagerConfig["--cloud-config"] = "/etc/kubernetes/azure.overwrite.json"
+		}
 	} else {
 		staticControllerManagerConfig["--cloud-provider"] = "external"
 	}

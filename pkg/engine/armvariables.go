@@ -570,6 +570,14 @@ func getK8sMasterVars(cs *api.ContainerService) (map[string]interface{}, error) 
 		masterVars["appGwICIdentityId"] = "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwICIdentityName'))]"
 	}
 
+	if cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.IsStandaloneKubelet != nil && *cs.Properties.MasterProfile.IsStandaloneKubelet {
+		cloudProviderConfigJSON, err := cs.Properties.GetCloudProviderConfigOverwrite(false)
+		if err != nil {
+			return masterVars, err
+		}
+		masterVars["cloudProviderConfigJSON"] = cloudProviderConfigJSON
+	}
+
 	return masterVars, nil
 }
 
