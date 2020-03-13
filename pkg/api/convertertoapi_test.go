@@ -6,6 +6,7 @@ package api
 import (
 	"testing"
 
+	"github.com/Azure/aks-engine/pkg/api/common"
 	"github.com/Azure/go-autorest/autorest/to"
 
 	"github.com/davecgh/go-spew/spew"
@@ -1047,6 +1048,37 @@ func TestSetVlabsKubernetesDefaults(t *testing.T) {
 			expectedNetworkPlugin: "",
 			expectedNetworkPolicy: "cilium",
 		},
+		{
+			name: "antrea networkPlugin",
+			p: &vlabs.Properties{
+				OrchestratorProfile: &vlabs.OrchestratorProfile{
+					KubernetesConfig: &vlabs.KubernetesConfig{
+						NetworkPlugin: "",
+						NetworkPolicy: "antrea",
+					},
+				},
+			},
+			expectedNetworkPlugin: "",
+			expectedNetworkPolicy: "antrea",
+		},
+		{
+			name: "flannel addon",
+			p: &vlabs.Properties{
+				OrchestratorProfile: &vlabs.OrchestratorProfile{
+					KubernetesConfig: &vlabs.KubernetesConfig{
+						NetworkPlugin: "",
+						Addons: []vlabs.KubernetesAddon{
+							{
+								Name:    common.FlannelAddonName,
+								Enabled: to.BoolPtr(true),
+							},
+						},
+					},
+				},
+			},
+			expectedNetworkPlugin: NetworkPluginFlannel,
+			expectedNetworkPolicy: "",
+		},
 	}
 
 	for _, test := range tests {
@@ -1082,5 +1114,36 @@ func TestConvertVLabsTelemetryProfile(t *testing.T) {
 
 	if cs.Properties.TelemetryProfile.ApplicationInsightsKey != "app_insights_key" {
 		t.Error("Expected TelemetryProfile.ApplicationInsightsKey to be set")
+	}
+}
+
+func TestConvertVlabsPlatformUpdateDomain(t *testing.T) {
+	vlabscs := &vlabs.ContainerService{
+		Properties: &vlabs.Properties{
+			OrchestratorProfile: &vlabs.OrchestratorProfile{
+				OrchestratorType: vlabs.Kubernetes,
+			},
+			MasterProfile: &vlabs.MasterProfile{
+				PlatformUpdateDomainCount: to.IntPtr(3),
+			},
+			AgentPoolProfiles: []*vlabs.AgentPoolProfile{
+				{
+					PlatformUpdateDomainCount: to.IntPtr(3),
+				},
+			},
+		},
+	}
+	cs, err := ConvertVLabsContainerService(vlabscs, false)
+	if err != nil {
+		t.Errorf("Error converting ContainerService: %s", err)
+	}
+	if cs == nil {
+		t.Errorf("expected the converted containerService struct to be non-nil")
+	}
+	if *cs.Properties.MasterProfile.PlatformUpdateDomainCount != 3 {
+		t.Errorf("expected the master profile platform FD to be 3")
+	}
+	if *cs.Properties.AgentPoolProfiles[0].PlatformUpdateDomainCount != 3 {
+		t.Errorf("expected the agent pool profile platform FD to be 3")
 	}
 }

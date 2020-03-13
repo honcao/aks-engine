@@ -97,7 +97,7 @@ func TestGetTemplateFuncMap(t *testing.T) {
 		"CloudInitData",
 		"WrapAsParameter",
 		"WrapAsVerbatim",
-		"AnyAgentUsesAvailabilitySets",
+		"HasVMASAgentPool",
 		"AnyAgentIsLinux",
 		"IsNSeriesSKU",
 		"HasAvailabilityZones",
@@ -240,7 +240,7 @@ func TestGetContainerServiceFuncMap(t *testing.T) {
 				"kube-scheduler":          "",
 			},
 			expectedGetHyperkubeImageReference: "hyperkube-amd64:v1.16.1",
-			expectedGetCCMImageReference:       "azure-cloud-controller-manager:v0.3.0",
+			expectedGetCCMImageReference:       "oss/kubernetes/azure-cloud-controller-manager:v0.4.1",
 			expectedGetTargetEnvironment:       "AzurePublicCloud",
 			expectedIsNSeriesSKU:               false,
 			expectedIsDockerContainerRuntime:   true,
@@ -277,7 +277,7 @@ func TestGetContainerServiceFuncMap(t *testing.T) {
 				"kube-scheduler":          "kube-scheduler:v1.17.0-beta.1",
 			},
 			expectedGetHyperkubeImageReference: "",
-			expectedGetCCMImageReference:       "azure-cloud-controller-manager:v0.3.0",
+			expectedGetCCMImageReference:       "oss/kubernetes/azure-cloud-controller-manager:v0.4.1",
 			expectedGetTargetEnvironment:       "AzurePublicCloud",
 			expectedIsNSeriesSKU:               false,
 			expectedIsDockerContainerRuntime:   true,
@@ -396,7 +396,7 @@ func TestGetContainerServiceFuncMap(t *testing.T) {
 				"kube-scheduler":          "example.azurecr.io/kube-scheduler-amd64:tag",
 			},
 			expectedGetHyperkubeImageReference: "",
-			expectedGetCCMImageReference:       "azure-cloud-controller-manager:v0.3.0",
+			expectedGetCCMImageReference:       "oss/kubernetes/azure-cloud-controller-manager:v0.4.1",
 			expectedGetTargetEnvironment:       "AzurePublicCloud",
 			expectedIsNSeriesSKU:               false,
 			expectedIsDockerContainerRuntime:   true,
@@ -811,7 +811,7 @@ func TestTemplateGenerator_FunctionMap(t *testing.T) {
 		{
 			Name:           "IsKataContainerRuntime_IsFalseWhenContainerRuntimeIsNotKataContainers",
 			FuncName:       "IsKataContainerRuntime",
-			ExpectedResult: true,
+			ExpectedResult: false,
 		},
 		{
 			Name:     "GetPodInfraContainerSpec",
@@ -821,7 +821,7 @@ func TestTemplateGenerator_FunctionMap(t *testing.T) {
 				cs.Properties.OrchestratorProfile.OrchestratorVersion = "1.16.0"
 				return cs
 			},
-			ExpectedResult: "foo/pause:1.2.0",
+			ExpectedResult: "foo/k8s/core/pause:1.2.0",
 		},
 		{
 			Name:     "HasTelemetryEnabled",
@@ -845,21 +845,120 @@ func TestTemplateGenerator_FunctionMap(t *testing.T) {
 			},
 			ExpectedResult: "my_telemetry_key",
 		},
+		{
+			Name:     "HasCiliumNetworkPolicy - cilium",
+			FuncName: "HasCiliumNetworkPolicy",
+			MutateFunc: func(cs api.ContainerService) api.ContainerService {
+				cs.Properties.OrchestratorProfile.KubernetesConfig.NetworkPolicy = NetworkPolicyCilium
+				return cs
+			},
+			ExpectedResult: true,
+		},
+		{
+			Name:     "HasCiliumNetworkPlugin - cilium",
+			FuncName: "HasCiliumNetworkPlugin",
+			MutateFunc: func(cs api.ContainerService) api.ContainerService {
+				cs.Properties.OrchestratorProfile.KubernetesConfig.NetworkPlugin = NetworkPluginCilium
+				return cs
+			},
+			ExpectedResult: true,
+		},
+		{
+			Name:     "HasCiliumNetworkPlugin - azure",
+			FuncName: "HasCiliumNetworkPlugin",
+			MutateFunc: func(cs api.ContainerService) api.ContainerService {
+				cs.Properties.OrchestratorProfile.KubernetesConfig.NetworkPlugin = NetworkPluginAzure
+				return cs
+			},
+			ExpectedResult: false,
+		},
+		{
+			Name:     "HasAntreaNetworkPolicy - antrea",
+			FuncName: "HasAntreaNetworkPolicy",
+			MutateFunc: func(cs api.ContainerService) api.ContainerService {
+				cs.Properties.OrchestratorProfile.KubernetesConfig.NetworkPolicy = NetworkPluginAntrea
+				return cs
+			},
+			ExpectedResult: true,
+		},
+		{
+			Name:     "HasAntreaNetworkPolicy - azure",
+			FuncName: "HasAntreaNetworkPolicy",
+			MutateFunc: func(cs api.ContainerService) api.ContainerService {
+				cs.Properties.OrchestratorProfile.KubernetesConfig.NetworkPolicy = NetworkPolicyAzure
+				return cs
+			},
+			ExpectedResult: false,
+		},
+		{
+			Name:     "HasFlannelNetworkPlugin - flannel",
+			FuncName: "HasFlannelNetworkPlugin",
+			MutateFunc: func(cs api.ContainerService) api.ContainerService {
+				cs.Properties.OrchestratorProfile.KubernetesConfig.NetworkPlugin = NetworkPluginFlannel
+				return cs
+			},
+			ExpectedResult: true,
+		},
+		{
+			Name:     "HasFlannelNetworkPlugin - azure",
+			FuncName: "HasFlannelNetworkPlugin",
+			MutateFunc: func(cs api.ContainerService) api.ContainerService {
+				cs.Properties.OrchestratorProfile.KubernetesConfig.NetworkPolicy = NetworkPolicyAzure
+				return cs
+			},
+			ExpectedResult: false,
+		},
+		{
+			Name:     "GetEmptyApplicationInsightsTelemetryKey",
+			FuncName: "GetApplicationInsightsTelemetryKey",
+			MutateFunc: func(cs api.ContainerService) api.ContainerService {
+				cs.Properties.TelemetryProfile = nil
+				return cs
+			},
+			ExpectedResult: "",
+		},
+		{
+			Name:     "GetLinuxDefaultTelemetryTags",
+			FuncName: "GetLinuxDefaultTelemetryTags",
+			MutateFunc: func(cs api.ContainerService) api.ContainerService {
+				cs.Properties.OrchestratorProfile.KubernetesConfig.ContainerRuntime = "containerRuntime"
+				cs.Properties.OrchestratorProfile.KubernetesConfig.ContainerdVersion = "1.2.4"
+				cs.Properties.OrchestratorProfile.KubernetesConfig.NetworkMode = "networkMode"
+				cs.Properties.OrchestratorProfile.KubernetesConfig.NetworkPlugin = "networkPlugin"
+				cs.Properties.OrchestratorProfile.KubernetesConfig.NetworkPolicy = "networkPolicy"
+				cs.Properties.OrchestratorProfile.OrchestratorVersion = "1.2.4"
+				return cs
+			},
+			ExpectedResult: "cri=containerRuntime,cri_version=1.2.4,k8s_version=1.2.4,network_mode=networkMode,network_plugin=networkPlugin,network_policy=networkPolicy,os_type=linux",
+		},
+		{
+			Name:     "GetLinuxDefaultTelemetryTagsWithEmpties",
+			FuncName: "GetLinuxDefaultTelemetryTags",
+			MutateFunc: func(cs api.ContainerService) api.ContainerService {
+				cs.Properties.OrchestratorProfile.KubernetesConfig.ContainerRuntime = "containerRuntime"
+				cs.Properties.OrchestratorProfile.KubernetesConfig.ContainerdVersion = "1.2.4"
+				cs.Properties.OrchestratorProfile.KubernetesConfig.NetworkMode = ""
+				cs.Properties.OrchestratorProfile.KubernetesConfig.NetworkPlugin = "networkPlugin"
+				cs.Properties.OrchestratorProfile.KubernetesConfig.NetworkPolicy = ""
+				cs.Properties.OrchestratorProfile.OrchestratorVersion = "1.2.4"
+				return cs
+			},
+			ExpectedResult: "cri=containerRuntime,cri_version=1.2.4,k8s_version=1.2.4,network_plugin=networkPlugin,os_type=linux",
+		},
 	}
 
-	originalCS := &api.ContainerService{}
-	if err := json.Unmarshal([]byte(getAPIModelString()), &originalCS); err != nil {
-		t.Fatalf("unexpected error unmashalling model string: %v", err)
-	}
-
-	for _, testCase := range testCases {
-		c := testCase
-		oCS := *originalCS
+	for _, c := range testCases {
+		c := c
 		t.Run(c.Name, func(t *testing.T) {
 			t.Parallel()
-			cs := oCS
-			if testCase.MutateFunc != nil {
-				cs = testCase.MutateFunc(oCS)
+
+			cs := api.ContainerService{}
+			if err := json.Unmarshal([]byte(getAPIModelString()), &cs); err != nil {
+				t.Fatalf("unexpected error unmashalling model string: %v", err)
+			}
+
+			if c.MutateFunc != nil {
+				cs = c.MutateFunc(cs)
 			}
 
 			bits, err := json.Marshal(&cs)
@@ -872,15 +971,15 @@ func TestTemplateGenerator_FunctionMap(t *testing.T) {
 				t.Fatalf("error generating function map: %v", err)
 			}
 
-			f, ok := funcmap[testCase.FuncName]
+			f, ok := funcmap[c.FuncName]
 			if !ok {
-				t.Fatalf("didn't find expected funcmap key %s.", testCase.FuncName)
+				t.Fatalf("didn't find expected funcmap key %s.", c.FuncName)
 			}
 
 			v := reflect.ValueOf(f)
 			rargs := make([]reflect.Value, 0)
-			if ret := v.Call(rargs); ret[0].Interface() != testCase.ExpectedResult {
-				t.Fatalf("expected %v, but got %v", testCase.ExpectedResult, ret[0].Interface())
+			if ret := v.Call(rargs); ret[0].Interface() != c.ExpectedResult {
+				t.Fatalf("expected %v, but got %v", c.ExpectedResult, ret[0].Interface())
 			}
 		})
 	}

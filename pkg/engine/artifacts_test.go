@@ -14,390 +14,6 @@ import (
 )
 
 func TestKubernetesAddonSettingsInit(t *testing.T) {
-	mockAzureStackProperties := api.GetMockPropertiesWithCustomCloudProfile("azurestackcloud", true, true, false)
-	cases := []struct {
-		p                              *api.Properties
-		expectedCilium                 bool
-		expectedFlannel                bool
-		expectedAADAdminGroup          bool
-		expectedAzureCloudProvider     bool
-		expectedAuditPolicy            bool
-		expectedPodSecurityPolicy      bool
-		expectedManagedStorageClass    bool
-		expectedUnmanagedStorageClass  bool
-		expectedScheduledMaintenance   bool
-		expectedAzureCSIStorageClasses bool
-	}{
-		// 1.14 default scenario
-		{
-			p: &api.Properties{
-				OrchestratorProfile: &api.OrchestratorProfile{
-					OrchestratorType:    Kubernetes,
-					OrchestratorVersion: "1.14.1",
-					KubernetesConfig: &api.KubernetesConfig{
-						NetworkPlugin: NetworkPluginAzure,
-					},
-				},
-			},
-			expectedCilium:                 false,
-			expectedFlannel:                false,
-			expectedAADAdminGroup:          false,
-			expectedAzureCloudProvider:     true,
-			expectedAuditPolicy:            true,
-			expectedPodSecurityPolicy:      false,
-			expectedManagedStorageClass:    true,
-			expectedUnmanagedStorageClass:  false,
-			expectedScheduledMaintenance:   false,
-			expectedAzureCSIStorageClasses: false,
-		},
-		// Cilium scenario
-		{
-			p: &api.Properties{
-				OrchestratorProfile: &api.OrchestratorProfile{
-					OrchestratorType:    Kubernetes,
-					OrchestratorVersion: "1.14.1",
-					KubernetesConfig: &api.KubernetesConfig{
-						NetworkPolicy: NetworkPolicyCilium,
-					},
-				},
-			},
-			expectedCilium:                 true,
-			expectedFlannel:                false,
-			expectedAADAdminGroup:          false,
-			expectedAzureCloudProvider:     true,
-			expectedAuditPolicy:            true,
-			expectedPodSecurityPolicy:      false,
-			expectedManagedStorageClass:    true,
-			expectedUnmanagedStorageClass:  false,
-			expectedScheduledMaintenance:   false,
-			expectedAzureCSIStorageClasses: false,
-		},
-		// Flannel scenario
-		{
-			p: &api.Properties{
-				OrchestratorProfile: &api.OrchestratorProfile{
-					OrchestratorType:    Kubernetes,
-					OrchestratorVersion: "1.14.1",
-					KubernetesConfig: &api.KubernetesConfig{
-						NetworkPlugin: NetworkPluginFlannel,
-					},
-				},
-			},
-			expectedCilium:                 false,
-			expectedFlannel:                true,
-			expectedAADAdminGroup:          false,
-			expectedAzureCloudProvider:     true,
-			expectedAuditPolicy:            true,
-			expectedPodSecurityPolicy:      false,
-			expectedManagedStorageClass:    true,
-			expectedUnmanagedStorageClass:  false,
-			expectedScheduledMaintenance:   false,
-			expectedAzureCSIStorageClasses: false,
-		},
-		// AAD Admin Group scenario
-		{
-			p: &api.Properties{
-				OrchestratorProfile: &api.OrchestratorProfile{
-					OrchestratorType:    Kubernetes,
-					OrchestratorVersion: "1.14.1",
-					KubernetesConfig: &api.KubernetesConfig{
-						NetworkPlugin: NetworkPluginAzure,
-					},
-				},
-				AADProfile: &api.AADProfile{
-					AdminGroupID: "1234-5",
-				},
-			},
-			expectedCilium:                 false,
-			expectedFlannel:                false,
-			expectedAADAdminGroup:          true,
-			expectedAzureCloudProvider:     true,
-			expectedAuditPolicy:            true,
-			expectedPodSecurityPolicy:      false,
-			expectedManagedStorageClass:    true,
-			expectedUnmanagedStorageClass:  false,
-			expectedScheduledMaintenance:   false,
-			expectedAzureCSIStorageClasses: false,
-		},
-		// ELB service scenario
-		{
-			p: &api.Properties{
-				OrchestratorProfile: &api.OrchestratorProfile{
-					OrchestratorType:    Kubernetes,
-					OrchestratorVersion: "1.14.1",
-					KubernetesConfig: &api.KubernetesConfig{
-						NetworkPlugin:   NetworkPluginAzure,
-						LoadBalancerSku: api.StandardLoadBalancerSku,
-					},
-				},
-			},
-			expectedCilium:                 false,
-			expectedFlannel:                false,
-			expectedAADAdminGroup:          false,
-			expectedAzureCloudProvider:     true,
-			expectedAuditPolicy:            true,
-			expectedPodSecurityPolicy:      false,
-			expectedManagedStorageClass:    true,
-			expectedUnmanagedStorageClass:  false,
-			expectedScheduledMaintenance:   false,
-			expectedAzureCSIStorageClasses: false,
-		},
-		// Scheduled Maintenance Scenario
-		{
-			p: &api.Properties{
-				OrchestratorProfile: &api.OrchestratorProfile{
-					OrchestratorType:    Kubernetes,
-					OrchestratorVersion: "1.14.1",
-					KubernetesConfig: &api.KubernetesConfig{
-						NetworkPlugin:   NetworkPluginAzure,
-						LoadBalancerSku: api.StandardLoadBalancerSku,
-						Addons: []api.KubernetesAddon{
-							{
-								Name:    common.ScheduledMaintenanceAddonName,
-								Enabled: to.BoolPtr(true),
-							},
-						},
-					},
-				},
-			},
-			expectedCilium:                 false,
-			expectedFlannel:                false,
-			expectedAADAdminGroup:          false,
-			expectedAzureCloudProvider:     true,
-			expectedAuditPolicy:            true,
-			expectedPodSecurityPolicy:      false,
-			expectedManagedStorageClass:    true,
-			expectedUnmanagedStorageClass:  false,
-			expectedScheduledMaintenance:   true,
-			expectedAzureCSIStorageClasses: false,
-		},
-		// PodSecurityPolicy scenario
-		{
-			p: &api.Properties{
-				OrchestratorProfile: &api.OrchestratorProfile{
-					OrchestratorType:    Kubernetes,
-					OrchestratorVersion: "1.14.1",
-					KubernetesConfig: &api.KubernetesConfig{
-						EnablePodSecurityPolicy: to.BoolPtr(true),
-					},
-				},
-			},
-			expectedCilium:                 false,
-			expectedFlannel:                false,
-			expectedAADAdminGroup:          false,
-			expectedAzureCloudProvider:     true,
-			expectedAuditPolicy:            true,
-			expectedPodSecurityPolicy:      true,
-			expectedManagedStorageClass:    true,
-			expectedUnmanagedStorageClass:  false,
-			expectedScheduledMaintenance:   false,
-			expectedAzureCSIStorageClasses: false,
-		},
-		// non-Managed Disk scenario
-		{
-			p: &api.Properties{
-				OrchestratorProfile: &api.OrchestratorProfile{
-					OrchestratorType:    Kubernetes,
-					OrchestratorVersion: "1.14.1",
-					KubernetesConfig: &api.KubernetesConfig{
-						NetworkPlugin: NetworkPluginAzure,
-					},
-				},
-				AgentPoolProfiles: []*api.AgentPoolProfile{
-					{
-						StorageProfile: api.StorageAccount,
-					},
-				},
-			},
-			expectedCilium:                 false,
-			expectedFlannel:                false,
-			expectedAADAdminGroup:          false,
-			expectedAzureCloudProvider:     true,
-			expectedAuditPolicy:            true,
-			expectedPodSecurityPolicy:      false,
-			expectedManagedStorageClass:    false,
-			expectedUnmanagedStorageClass:  true,
-			expectedScheduledMaintenance:   false,
-			expectedAzureCSIStorageClasses: false,
-		},
-		// Azure Stack Managed Disk scenario
-		{
-			p: &api.Properties{
-				OrchestratorProfile: &api.OrchestratorProfile{
-					OrchestratorType:    Kubernetes,
-					OrchestratorVersion: "1.14.1",
-					KubernetesConfig: &api.KubernetesConfig{
-						NetworkPlugin: NetworkPluginAzure,
-					},
-				},
-				AgentPoolProfiles: []*api.AgentPoolProfile{
-					{
-						StorageProfile: api.ManagedDisks,
-					},
-				},
-				CustomCloudProfile: mockAzureStackProperties.CustomCloudProfile,
-			},
-			expectedCilium:                 false,
-			expectedFlannel:                false,
-			expectedAADAdminGroup:          false,
-			expectedAzureCloudProvider:     true,
-			expectedAuditPolicy:            true,
-			expectedPodSecurityPolicy:      false,
-			expectedManagedStorageClass:    true,
-			expectedUnmanagedStorageClass:  false,
-			expectedScheduledMaintenance:   false,
-			expectedAzureCSIStorageClasses: false,
-		},
-		// Azure Stack non-Managed Disk scenario
-		{
-			p: &api.Properties{
-				OrchestratorProfile: &api.OrchestratorProfile{
-					OrchestratorType:    Kubernetes,
-					OrchestratorVersion: "1.14.1",
-					KubernetesConfig: &api.KubernetesConfig{
-						NetworkPlugin: NetworkPluginAzure,
-					},
-				},
-				AgentPoolProfiles: []*api.AgentPoolProfile{
-					{
-						StorageProfile: api.StorageAccount,
-					},
-				},
-				CustomCloudProfile: mockAzureStackProperties.CustomCloudProfile,
-			},
-			expectedCilium:                 false,
-			expectedFlannel:                false,
-			expectedAADAdminGroup:          false,
-			expectedAzureCloudProvider:     true,
-			expectedAuditPolicy:            true,
-			expectedPodSecurityPolicy:      false,
-			expectedManagedStorageClass:    false,
-			expectedUnmanagedStorageClass:  true,
-			expectedScheduledMaintenance:   false,
-			expectedAzureCSIStorageClasses: false,
-		},
-		// 1.15.0-beta.1 scenario
-		{
-			p: &api.Properties{
-				OrchestratorProfile: &api.OrchestratorProfile{
-					OrchestratorType:    Kubernetes,
-					OrchestratorVersion: "1.15.0-beta.1",
-					KubernetesConfig: &api.KubernetesConfig{
-						NetworkPlugin: NetworkPluginAzure,
-					},
-				},
-			},
-			expectedCilium:                 false,
-			expectedFlannel:                false,
-			expectedAADAdminGroup:          false,
-			expectedAzureCloudProvider:     true,
-			expectedAuditPolicy:            true,
-			expectedPodSecurityPolicy:      true,
-			expectedManagedStorageClass:    true,
-			expectedUnmanagedStorageClass:  false,
-			expectedScheduledMaintenance:   false,
-			expectedAzureCSIStorageClasses: false,
-		},
-		// CSI storage classes scenario
-		{
-			p: &api.Properties{
-				OrchestratorProfile: &api.OrchestratorProfile{
-					OrchestratorType:    Kubernetes,
-					OrchestratorVersion: "1.13.0",
-					KubernetesConfig: &api.KubernetesConfig{
-						NetworkPlugin:             NetworkPluginAzure,
-						UseCloudControllerManager: to.BoolPtr(true),
-					},
-				},
-				AgentPoolProfiles: []*api.AgentPoolProfile{
-					{
-						StorageProfile: api.StorageAccount,
-					},
-				},
-			},
-			expectedCilium:                 false,
-			expectedFlannel:                false,
-			expectedAADAdminGroup:          false,
-			expectedAzureCloudProvider:     true,
-			expectedAuditPolicy:            true,
-			expectedPodSecurityPolicy:      false,
-			expectedManagedStorageClass:    false,
-			expectedUnmanagedStorageClass:  false,
-			expectedScheduledMaintenance:   false,
-			expectedAzureCSIStorageClasses: true,
-		},
-	}
-
-	for _, c := range cases {
-		componentFileSpecArray := kubernetesAddonSettingsInit(c.p)
-		for _, componentFileSpec := range componentFileSpecArray {
-			switch componentFileSpec.destinationFile {
-			case "cilium-daemonset.yaml":
-				if c.expectedCilium != componentFileSpec.isEnabled {
-					t.Fatalf("Expected %s to be %t", common.CiliumAddonName, c.expectedCilium)
-				}
-			case "flannel-daemonset.yaml":
-				if c.expectedFlannel != componentFileSpec.isEnabled {
-					t.Fatalf("Expected %s to be %t", common.FlannelAddonName, c.expectedFlannel)
-				}
-			case "aad-default-admin-group-rbac.yaml":
-				if c.expectedAADAdminGroup != componentFileSpec.isEnabled {
-					t.Fatalf("Expected %s to be %t", common.AADAdminGroupAddonName, c.expectedAADAdminGroup)
-				}
-			case "azure-cloud-provider-deployment.yaml":
-				if c.expectedAzureCloudProvider != componentFileSpec.isEnabled {
-					t.Fatalf("Expected %s to be %t", common.AzureCloudProviderAddonName, c.expectedAzureCloudProvider)
-				}
-			case "audit-policy.yaml":
-				if c.expectedAuditPolicy != componentFileSpec.isEnabled {
-					t.Fatalf("Expected %s to be %t", common.AuditPolicyAddonName, c.expectedAuditPolicy)
-				}
-			case "pod-security-policy.yaml":
-				if c.expectedPodSecurityPolicy != componentFileSpec.isEnabled {
-					t.Fatalf("Expected %s to be %t", "PodSecurityPolicy", c.expectedPodSecurityPolicy)
-				}
-			case "azure-storage-classes.yaml":
-				if strings.Contains(componentFileSpec.sourceFile, "unmanaged-azure-storage") {
-					if c.expectedUnmanagedStorageClass != componentFileSpec.isEnabled {
-						t.Fatalf("Expected %s to be %t", componentFileSpec.sourceFile, c.expectedUnmanagedStorageClass)
-					}
-					if c.p.CustomCloudProfile != nil {
-						if !strings.Contains(componentFileSpec.sourceFile, "-custom.yaml") {
-							t.Fatalf("Expected an Azure Stack-specific unmanaged disk spec, got %s instead", componentFileSpec.sourceFile)
-						}
-					} else {
-						if strings.Contains(componentFileSpec.sourceFile, "-custom.yaml") {
-							t.Fatalf("Got an unexpected Azure Stack-specific unmanaged disk spec in a non-Azure Stack cluster configuration")
-						}
-					}
-				} else {
-					if c.expectedManagedStorageClass != componentFileSpec.isEnabled {
-						t.Fatalf("Expected %s to be %t", componentFileSpec.sourceFile, c.expectedManagedStorageClass)
-					}
-					if c.p.CustomCloudProfile != nil {
-						if !strings.Contains(componentFileSpec.sourceFile, "-custom.yaml") {
-							t.Fatalf("Expected an Azure Stack-specific Managed disk spec, got %s instead", componentFileSpec.sourceFile)
-						}
-					} else {
-						if strings.Contains(componentFileSpec.sourceFile, "-custom.yaml") {
-							t.Fatalf("Got an unexpected Azure Stack-specific Managed disk spec in a non-Azure Stack cluster configuration")
-						}
-					}
-				}
-			case "scheduled-maintenance-deployment.yaml":
-				if c.expectedScheduledMaintenance != componentFileSpec.isEnabled {
-					t.Fatalf("Expected %s to be %t", common.ScheduledMaintenanceAddonName, c.expectedScheduledMaintenance)
-				}
-			case "azure-csi-storage-classes.yaml":
-				if c.expectedAzureCSIStorageClasses != componentFileSpec.isEnabled {
-					t.Fatalf("Expected %s to be %t", componentFileSpec.sourceFile, c.expectedAzureCSIStorageClasses)
-				}
-			}
-		}
-	}
-}
-
-func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 	/*
 		$ echo "Hello, World\!" | base64
 		SGVsbG8sIFdvcmxkXCEK
@@ -425,6 +41,7 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 		expectedAzureCNINetworkMonitor kubernetesComponentFileSpec
 		expectedDNSAutoscaler          kubernetesComponentFileSpec
 		expectedCalico                 kubernetesComponentFileSpec
+		expectedCilium                 kubernetesComponentFileSpec
 		expectedAzureNetworkPolicy     kubernetesComponentFileSpec
 		expectedAzurePolicy            kubernetesComponentFileSpec
 		expectedCloudNodeManager       kubernetesComponentFileSpec
@@ -432,6 +49,12 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 		expectedKubeDNS                kubernetesComponentFileSpec
 		expectedCoreDNS                kubernetesComponentFileSpec
 		expectedKubeProxy              kubernetesComponentFileSpec
+		expectedPodSecurityPolicy      kubernetesComponentFileSpec
+		expectedAADDefaultAdminGroup   kubernetesComponentFileSpec
+		expectedAntrea                 kubernetesComponentFileSpec
+		expectedAuditPolicy            kubernetesComponentFileSpec
+		expectedAzureCloudProvider     kubernetesComponentFileSpec
+		expectedFlannel                kubernetesComponentFileSpec
 	}{
 		{
 			name: "addons with data",
@@ -518,6 +141,10 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 								Data: base64Data,
 							},
 							{
+								Name: common.CiliumAddonName,
+								Data: base64Data,
+							},
+							{
 								Name: common.AzureNetworkPolicyAddonName,
 								Data: base64Data,
 							},
@@ -543,6 +170,30 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 							},
 							{
 								Name: common.KubeProxyAddonName,
+								Data: base64Data,
+							},
+							{
+								Name: common.PodSecurityPolicyAddonName,
+								Data: base64Data,
+							},
+							{
+								Name: common.AADAdminGroupAddonName,
+								Data: base64Data,
+							},
+							{
+								Name: common.AntreaAddonName,
+								Data: base64Data,
+							},
+							{
+								Name: common.AuditPolicyAddonName,
+								Data: base64Data,
+							},
+							{
+								Name: common.AzureCloudProviderAddonName,
+								Data: base64Data,
+							},
+							{
+								Name: common.FlannelAddonName,
 								Data: base64Data,
 							},
 						},
@@ -644,6 +295,11 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 				base64Data:      base64Data,
 				destinationFile: calicoAddonDestinationFilename,
 			},
+			expectedCilium: kubernetesComponentFileSpec{
+				sourceFile:      ciliumAddonSourceFilename,
+				base64Data:      base64Data,
+				destinationFile: ciliumAddonDestinationFilename,
+			},
 			expectedAzureNetworkPolicy: kubernetesComponentFileSpec{
 				sourceFile:      azureNetworkPolicyAddonSourceFilename,
 				base64Data:      base64Data,
@@ -678,6 +334,36 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 				sourceFile:      kubeProxyAddonSourceFilename,
 				base64Data:      base64Data,
 				destinationFile: kubeProxyAddonDestinationFilename,
+			},
+			expectedPodSecurityPolicy: kubernetesComponentFileSpec{
+				sourceFile:      podSecurityPolicyAddonSourceFilename,
+				base64Data:      base64Data,
+				destinationFile: podSecurityPolicyAddonDestinationFilename,
+			},
+			expectedAADDefaultAdminGroup: kubernetesComponentFileSpec{
+				sourceFile:      aadDefaultAdminGroupAddonSourceFilename,
+				base64Data:      base64Data,
+				destinationFile: aadDefaultAdminGroupDestinationFilename,
+			},
+			expectedAntrea: kubernetesComponentFileSpec{
+				sourceFile:      antreaAddonSourceFilename,
+				base64Data:      base64Data,
+				destinationFile: antreaAddonDestinationFilename,
+			},
+			expectedAuditPolicy: kubernetesComponentFileSpec{
+				sourceFile:      auditPolicyAddonSourceFilename,
+				base64Data:      base64Data,
+				destinationFile: auditPolicyAddonDestinationFilename,
+			},
+			expectedAzureCloudProvider: kubernetesComponentFileSpec{
+				sourceFile:      cloudProviderAddonSourceFilename,
+				base64Data:      base64Data,
+				destinationFile: cloudProviderAddonDestinationFilename,
+			},
+			expectedFlannel: kubernetesComponentFileSpec{
+				sourceFile:      flannelAddonSourceFilename,
+				base64Data:      base64Data,
+				destinationFile: flannelAddonDestinationFilename,
 			},
 		},
 		{
@@ -746,6 +432,9 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 								Name: common.CalicoAddonName,
 							},
 							{
+								Name: common.CiliumAddonName,
+							},
+							{
 								Name: common.AzureNetworkPolicyAddonName,
 							},
 							{
@@ -765,6 +454,24 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 							},
 							{
 								Name: common.KubeProxyAddonName,
+							},
+							{
+								Name: common.PodSecurityPolicyAddonName,
+							},
+							{
+								Name: common.AADAdminGroupAddonName,
+							},
+							{
+								Name: common.AntreaAddonName,
+							},
+							{
+								Name: common.AuditPolicyAddonName,
+							},
+							{
+								Name: common.AzureCloudProviderAddonName,
+							},
+							{
+								Name: common.FlannelAddonName,
 							},
 						},
 					},
@@ -865,6 +572,11 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 				base64Data:      "",
 				destinationFile: calicoAddonDestinationFilename,
 			},
+			expectedCilium: kubernetesComponentFileSpec{
+				sourceFile:      ciliumAddonSourceFilename,
+				base64Data:      "",
+				destinationFile: ciliumAddonDestinationFilename,
+			},
 			expectedAzureNetworkPolicy: kubernetesComponentFileSpec{
 				sourceFile:      azureNetworkPolicyAddonSourceFilename,
 				base64Data:      "",
@@ -899,6 +611,36 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 				sourceFile:      kubeProxyAddonSourceFilename,
 				base64Data:      "",
 				destinationFile: kubeProxyAddonDestinationFilename,
+			},
+			expectedPodSecurityPolicy: kubernetesComponentFileSpec{
+				sourceFile:      podSecurityPolicyAddonSourceFilename,
+				base64Data:      "",
+				destinationFile: podSecurityPolicyAddonDestinationFilename,
+			},
+			expectedAADDefaultAdminGroup: kubernetesComponentFileSpec{
+				sourceFile:      aadDefaultAdminGroupAddonSourceFilename,
+				base64Data:      "",
+				destinationFile: aadDefaultAdminGroupDestinationFilename,
+			},
+			expectedAntrea: kubernetesComponentFileSpec{
+				sourceFile:      antreaAddonSourceFilename,
+				base64Data:      "",
+				destinationFile: antreaAddonDestinationFilename,
+			},
+			expectedAuditPolicy: kubernetesComponentFileSpec{
+				sourceFile:      auditPolicyAddonSourceFilename,
+				base64Data:      "",
+				destinationFile: auditPolicyAddonDestinationFilename,
+			},
+			expectedAzureCloudProvider: kubernetesComponentFileSpec{
+				sourceFile:      cloudProviderAddonSourceFilename,
+				base64Data:      "",
+				destinationFile: cloudProviderAddonDestinationFilename,
+			},
+			expectedFlannel: kubernetesComponentFileSpec{
+				sourceFile:      flannelAddonSourceFilename,
+				base64Data:      "",
+				destinationFile: flannelAddonDestinationFilename,
 			},
 		},
 		{
@@ -999,6 +741,11 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 				base64Data:      "",
 				destinationFile: calicoAddonDestinationFilename,
 			},
+			expectedCilium: kubernetesComponentFileSpec{
+				sourceFile:      ciliumAddonSourceFilename,
+				base64Data:      "",
+				destinationFile: ciliumAddonDestinationFilename,
+			},
 			expectedAzureNetworkPolicy: kubernetesComponentFileSpec{
 				sourceFile:      azureNetworkPolicyAddonSourceFilename,
 				base64Data:      "",
@@ -1034,6 +781,36 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 				base64Data:      "",
 				destinationFile: kubeProxyAddonDestinationFilename,
 			},
+			expectedPodSecurityPolicy: kubernetesComponentFileSpec{
+				sourceFile:      podSecurityPolicyAddonSourceFilename,
+				base64Data:      "",
+				destinationFile: podSecurityPolicyAddonDestinationFilename,
+			},
+			expectedAADDefaultAdminGroup: kubernetesComponentFileSpec{
+				sourceFile:      aadDefaultAdminGroupAddonSourceFilename,
+				base64Data:      "",
+				destinationFile: aadDefaultAdminGroupDestinationFilename,
+			},
+			expectedAntrea: kubernetesComponentFileSpec{
+				sourceFile:      antreaAddonSourceFilename,
+				base64Data:      "",
+				destinationFile: antreaAddonDestinationFilename,
+			},
+			expectedAuditPolicy: kubernetesComponentFileSpec{
+				sourceFile:      auditPolicyAddonSourceFilename,
+				base64Data:      "",
+				destinationFile: auditPolicyAddonDestinationFilename,
+			},
+			expectedAzureCloudProvider: kubernetesComponentFileSpec{
+				sourceFile:      cloudProviderAddonSourceFilename,
+				base64Data:      "",
+				destinationFile: cloudProviderAddonDestinationFilename,
+			},
+			expectedFlannel: kubernetesComponentFileSpec{
+				sourceFile:      flannelAddonSourceFilename,
+				base64Data:      "",
+				destinationFile: flannelAddonDestinationFilename,
+			},
 		},
 	}
 
@@ -1041,7 +818,7 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 		c := c
 		t.Run(c.name, func(t *testing.T) {
 			t.Parallel()
-			componentFileSpec := kubernetesContainerAddonSettingsInit(c.p)
+			componentFileSpec := kubernetesAddonSettingsInit(c.p)
 			for addon := range componentFileSpec {
 				switch addon {
 				case common.HeapsterAddonName:
@@ -1234,6 +1011,16 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 					if c.expectedCalico.destinationFile != componentFileSpec[addon].destinationFile {
 						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].destinationFile, c.expectedCalico.destinationFile)
 					}
+				case common.CiliumAddonName:
+					if c.expectedCilium.sourceFile != componentFileSpec[addon].sourceFile {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].sourceFile, c.expectedCilium.sourceFile)
+					}
+					if c.expectedCilium.base64Data != componentFileSpec[addon].base64Data {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].base64Data, c.expectedCilium.base64Data)
+					}
+					if c.expectedCilium.destinationFile != componentFileSpec[addon].destinationFile {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].destinationFile, c.expectedCilium.destinationFile)
+					}
 				case common.AzureNetworkPolicyAddonName:
 					if c.expectedAzureNetworkPolicy.sourceFile != componentFileSpec[addon].sourceFile {
 						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].sourceFile, c.expectedAzureNetworkPolicy.sourceFile)
@@ -1303,6 +1090,66 @@ func TestKubernetesContainerAddonSettingsInit(t *testing.T) {
 					}
 					if c.expectedKubeProxy.destinationFile != componentFileSpec[addon].destinationFile {
 						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].destinationFile, c.expectedKubeProxy.destinationFile)
+					}
+				case common.PodSecurityPolicyAddonName:
+					if c.expectedPodSecurityPolicy.sourceFile != componentFileSpec[addon].sourceFile {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].sourceFile, c.expectedPodSecurityPolicy.sourceFile)
+					}
+					if c.expectedPodSecurityPolicy.base64Data != componentFileSpec[addon].base64Data {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].base64Data, c.expectedPodSecurityPolicy.base64Data)
+					}
+					if c.expectedPodSecurityPolicy.destinationFile != componentFileSpec[addon].destinationFile {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].destinationFile, c.expectedPodSecurityPolicy.destinationFile)
+					}
+				case common.AADAdminGroupAddonName:
+					if c.expectedAADDefaultAdminGroup.sourceFile != componentFileSpec[addon].sourceFile {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].sourceFile, c.expectedAADDefaultAdminGroup.sourceFile)
+					}
+					if c.expectedAADDefaultAdminGroup.base64Data != componentFileSpec[addon].base64Data {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].base64Data, c.expectedAADDefaultAdminGroup.base64Data)
+					}
+					if c.expectedAADDefaultAdminGroup.destinationFile != componentFileSpec[addon].destinationFile {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].destinationFile, c.expectedAADDefaultAdminGroup.destinationFile)
+					}
+				case common.AntreaAddonName:
+					if c.expectedAntrea.sourceFile != componentFileSpec[addon].sourceFile {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].sourceFile, c.expectedAntrea.sourceFile)
+					}
+					if c.expectedAntrea.base64Data != componentFileSpec[addon].base64Data {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].base64Data, c.expectedAntrea.base64Data)
+					}
+					if c.expectedAntrea.destinationFile != componentFileSpec[addon].destinationFile {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].destinationFile, c.expectedAntrea.destinationFile)
+					}
+				case common.AuditPolicyAddonName:
+					if c.expectedAuditPolicy.sourceFile != componentFileSpec[addon].sourceFile {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].sourceFile, c.expectedAuditPolicy.sourceFile)
+					}
+					if c.expectedAuditPolicy.base64Data != componentFileSpec[addon].base64Data {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].base64Data, c.expectedAuditPolicy.base64Data)
+					}
+					if c.expectedAuditPolicy.destinationFile != componentFileSpec[addon].destinationFile {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].destinationFile, c.expectedAuditPolicy.destinationFile)
+					}
+				case common.AzureCloudProviderAddonName:
+					if c.expectedAzureCloudProvider.sourceFile != componentFileSpec[addon].sourceFile {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].sourceFile, c.expectedAzureCloudProvider.sourceFile)
+					}
+					if c.expectedAzureCloudProvider.base64Data != componentFileSpec[addon].base64Data {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].base64Data, c.expectedAzureCloudProvider.base64Data)
+					}
+					if c.expectedAzureCloudProvider.destinationFile != componentFileSpec[addon].destinationFile {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].destinationFile, c.expectedAzureCloudProvider.destinationFile)
+					}
+				case common.FlannelAddonName:
+					if c.expectedFlannel.sourceFile != componentFileSpec[addon].sourceFile {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].sourceFile, c.expectedFlannel.sourceFile)
+					}
+					if c.expectedFlannel.base64Data != componentFileSpec[addon].base64Data {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].base64Data, c.expectedFlannel.base64Data)
+					}
+					if c.expectedFlannel.destinationFile != componentFileSpec[addon].destinationFile {
+						t.Fatalf("Expected %s to be %s", componentFileSpec[addon].destinationFile, c.expectedFlannel.destinationFile)
 					}
 				}
 			}

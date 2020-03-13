@@ -183,13 +183,13 @@ write_files:
     }
 {{end}}
 
-{{if eq .OrchestratorProfile.KubernetesConfig.NetworkPlugin "cilium"}}
+{{if HasCiliumNetworkPlugin}}
 - path: /etc/systemd/system/sys-fs-bpf.mount
   permissions: "0644"
   encoding: gzip
   owner: root
   content: !!binary |
-    {{WrapAsVariable "systemdBPFMount"}}
+    {{CloudInitData "systemdBPFMount"}}
 {{end}}
 
 {{if NeedsContainerd}}
@@ -342,8 +342,6 @@ write_files:
 
 MASTER_MANIFESTS_CONFIG_PLACEHOLDER
 
-MASTER_ADDONS_CONFIG_PLACEHOLDER
-
 MASTER_CUSTOM_FILES_PLACEHOLDER
 
 MASTER_CONTAINER_ADDONS_PLACEHOLDER
@@ -353,7 +351,9 @@ MASTER_CONTAINER_ADDONS_PLACEHOLDER
   owner: root
   content: |
     KUBELET_CONFIG={{GetKubeletConfigKeyVals .MasterProfile.KubernetesConfig}}
+{{- if not (IsKubernetesVersionGe "1.17.0")}}
     KUBELET_IMAGE={{GetHyperkubeImageReference}}
+{{end}}
 {{if IsKubernetesVersionGe "1.16.0"}}
     KUBELET_NODE_LABELS={{GetMasterKubernetesLabels "',variables('labelResourceGroup'),'"}}
 {{else}}
@@ -387,10 +387,6 @@ MASTER_CONTAINER_ADDONS_PLACEHOLDER
     iptables -t nat -A PREROUTING -p tcp --dport 4443 -j REDIRECT --to-port 443
 {{end}}
     sed -i "s|<advertiseAddr>|{{WrapAsVariable "kubernetesAPIServerIP"}}|g" /etc/kubernetes/manifests/kube-apiserver.yaml
-
-{{if AdminGroupID }}
-    sed -i "s|<gID>|{{WrapAsParameter "aadAdminGroupId"}}|g" "/etc/kubernetes/addons/aad-default-admin-group-rbac.yaml"
-{{end}}
 
 {{if EnableDataEncryptionAtRest }}
     sed -i "s|<etcdEncryptionSecret>|\"{{WrapAsParameter "etcdEncryptionKey"}}\"|g" /etc/kubernetes/encryption-config.yaml

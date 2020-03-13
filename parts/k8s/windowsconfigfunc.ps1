@@ -104,8 +104,43 @@ function Install-Docker
     }
 }
 
+function Set-DockerLogFileOptions {
+    Write-Log "Updating log file options in docker config"
+    $dockerConfigPath = "C:\ProgramData\docker\config\daemon.json"
+
+    if (-not (Test-Path $dockerConfigPath)) {
+        "{}" | Out-File $dockerConfigPath
+    }
+
+    $dockerConfig = Get-Content $dockerConfigPath | ConvertFrom-Json
+    $dockerConfig | Add-Member -Name "log-driver" -Value "json-file" -MemberType NoteProperty
+    $logOpts = @{ "max-size" = "50m"; "max-file" = "5" }
+    $dockerConfig | Add-Member -Name "log-opts" -Value $logOpts -MemberType NoteProperty
+    $dockerConfig = $dockerConfig | ConvertTo-Json -Depth 10
+
+    Write-Log "New docker config:"
+    Write-Log $dockerConfig
+
+    # daemon.json MUST be encoded as UTF8-no-BOM!
+    Remove-Item $dockerConfigPath
+    $fileEncoding = New-Object System.Text.UTF8Encoding $false
+    [IO.File]::WriteAllLInes($dockerConfigPath, $dockerConfig, $fileEncoding)
+
+    Restart-Service docker
+}
+
 # Pagefile adjustments
 function Adjust-PageFileSize()
 {
     wmic pagefileset set InitialSize=8096,MaximumSize=8096
+}
+
+function Adjust-DynamicPortRange()
+{
+    # Kube-proxy reserves 63 ports per service which limits clusters with Windows nodes
+    # to ~225 services if default port reservations are used.
+    # https://docs.microsoft.com/en-us/virtualization/windowscontainers/kubernetes/common-problems#load-balancers-are-plumbed-inconsistently-across-the-cluster-nodes
+    # Kube-proxy load balancing should be set to DSR mode when it releases with future versions of the OS
+
+    Invoke-Executable -Executable "netsh.exe" -ArgList @("int", "ipv4", "set", "dynamicportrange", "tcp", "16385", "49151")
 }

@@ -6,12 +6,14 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/Azure/aks-engine/pkg/api"
 	"github.com/Azure/aks-engine/pkg/armhelpers"
+	"github.com/Azure/aks-engine/pkg/armhelpers/utils"
 	"github.com/Azure/aks-engine/pkg/engine"
 	"github.com/Azure/aks-engine/pkg/helpers"
 	"github.com/Azure/aks-engine/pkg/i18n"
@@ -38,6 +40,7 @@ type upgradeCmd struct {
 	deploymentDirectory         string
 	upgradeVersion              string
 	location                    string
+	kubeconfigPath              string
 	timeoutInMinutes            int
 	cordonDrainTimeoutInMinutes int
 	force                       bool
@@ -71,6 +74,7 @@ func newUpgradeCmd() *cobra.Command {
 	f.StringVarP(&uc.apiModelPath, "api-model", "m", "", "path to the generated apimodel.json file")
 	f.StringVar(&uc.deploymentDirectory, "deployment-dir", "", "the location of the output from `generate`")
 	f.StringVarP(&uc.upgradeVersion, "upgrade-version", "k", "", "desired kubernetes version (required)")
+	f.StringVarP(&uc.kubeconfigPath, "kubeconfig", "b", "", "the path of the kubeconfig file")
 	f.IntVar(&uc.timeoutInMinutes, "vm-timeout", -1, "how long to wait for each vm to be upgraded in minutes")
 	f.IntVar(&uc.cordonDrainTimeoutInMinutes, "cordon-drain-timeout", -1, "how long to wait for each vm to be cordoned in minutes")
 	f.BoolVarP(&uc.force, "force", "f", false, "force upgrading the cluster to desired version. Allows same version upgrades and downgrades.")
@@ -263,10 +267,27 @@ func (uc *upgradeCmd) run(cmd *cobra.Command, args []string) error {
 	upgradeCluster.AgentPoolsToUpgrade = uc.agentPoolsToUpgrade
 	upgradeCluster.Force = uc.force
 
-	kubeConfig, err := engine.GenerateKubeConfig(uc.containerService.Properties, uc.location)
-	if err != nil {
-		return errors.Wrap(err, "generating kubeconfig")
+	var kubeConfig string
+	if uc.kubeconfigPath != "" {
+		var path string
+		var content []byte
+		path, err = filepath.Abs(uc.kubeconfigPath)
+		if err != nil {
+			return errors.Wrap(err, "reading --kubeconfig")
+		}
+		content, err = ioutil.ReadFile(path)
+		if err != nil {
+			return errors.Wrap(err, "reading --kubeconfig")
+		}
+		kubeConfig = string(content)
+	} else {
+		kubeConfig, err = engine.GenerateKubeConfig(uc.containerService.Properties, uc.location)
+		if err != nil {
+			return errors.Wrap(err, "generating kubeconfig")
+		}
 	}
+
+	upgradeCluster.IsVMSSToBeUpgraded = isVMSSNameInAgentPoolsArray
 
 	if err = upgradeCluster.UpgradeCluster(uc.client, kubeConfig, BuildTag); err != nil {
 		return errors.Wrap(err, "upgrading cluster")
@@ -290,4 +311,15 @@ func (uc *upgradeCmd) run(cmd *cobra.Command, args []string) error {
 	}
 	dir, file := filepath.Split(uc.apiModelPath)
 	return f.SaveFile(dir, file, b)
+}
+
+func isVMSSNameInAgentPoolsArray(vmss string, cs *api.ContainerService) bool {
+	for _, pool := range cs.Properties.AgentPoolProfiles {
+		if pool.AvailabilityProfile == api.VirtualMachineScaleSets {
+			if poolName, _, _ := utils.VmssNameParts(vmss); poolName == pool.Name {
+				return true
+			}
+		}
+	}
+	return false
 }

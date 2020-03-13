@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Azure/aks-engine/pkg/api/common"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -338,7 +339,12 @@ func TestAPIServerConfigDefaultAdmissionControls(t *testing.T) {
 	cs := CreateMockContainerService("testcluster", version, 3, 2, false)
 	cs.Properties.OrchestratorProfile.KubernetesConfig.APIServerConfig = map[string]string{}
 	cs.Properties.OrchestratorProfile.KubernetesConfig.APIServerConfig[admissonControlKey] = "NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota,AlwaysPullImages,ExtendedResourceToleration"
-	cs.Properties.OrchestratorProfile.KubernetesConfig.EnablePodSecurityPolicy = to.BoolPtr(true)
+	cs.Properties.OrchestratorProfile.KubernetesConfig.Addons = []KubernetesAddon{
+		{
+			Name:    common.PodSecurityPolicyAddonName,
+			Enabled: to.BoolPtr(true),
+		},
+	}
 	cs.setAPIServerConfig()
 	a := cs.Properties.OrchestratorProfile.KubernetesConfig.APIServerConfig
 
@@ -469,5 +475,34 @@ func TestAPIServerCosmosEtcd(t *testing.T) {
 	if a["--etcd-servers"] != fmt.Sprintf("https://%s:%s", cs.Properties.MasterProfile.GetCosmosEndPointURI(), strconv.Itoa(DefaultMasterEtcdClientPort)) {
 		t.Fatalf("got unexpected default value for '--etcd-servers' API server config: %s",
 			a["--etcd-servers"])
+	}
+}
+
+func TestAPIServerFeatureGates(t *testing.T) {
+	// Test k8s < 1.13
+	cs := CreateMockContainerService("testcluster", defaultTestClusterVer, 3, 2, false)
+	cs.setAPIServerConfig()
+	a := cs.Properties.OrchestratorProfile.KubernetesConfig.APIServerConfig
+	if a["--feature-gates"] != "" {
+		t.Fatalf("got unexpected '--feature-gates' API server config value for k8s v%s: %s",
+			defaultTestClusterVer, a["--feature-gates"])
+	}
+
+	// Test 1.13 <= k8s <= 1.16
+	cs = CreateMockContainerService("testcluster", "1.14.0", 3, 2, false)
+	cs.setAPIServerConfig()
+	a = cs.Properties.OrchestratorProfile.KubernetesConfig.APIServerConfig
+	if a["--feature-gates"] != "VolumeSnapshotDataSource=true" {
+		t.Fatalf("got unexpected '--feature-gates' API server config value for k8s v%s: %s",
+			"1.14.0", a["--feature-gates"])
+	}
+
+	// Test k8s >= 1.17
+	cs = CreateMockContainerService("testcluster", "1.17.0", 3, 2, false)
+	cs.setAPIServerConfig()
+	a = cs.Properties.OrchestratorProfile.KubernetesConfig.APIServerConfig
+	if a["--feature-gates"] != "" {
+		t.Fatalf("got unexpected '--feature-gates' API server config value for k8s v%s: %s",
+			"1.17.0", a["--feature-gates"])
 	}
 }
