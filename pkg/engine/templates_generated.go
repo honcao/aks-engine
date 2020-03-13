@@ -38405,6 +38405,59 @@ func k8sCloudInitArtifactsKubeletMonitorTimer() (*asset, error) {
 	return a, nil
 }
 
+var _k8sCloudInitArtifactsKubeletStandaloneService = []byte(`[Unit]
+Description=Kubelet
+ConditionPathExists=/usr/local/bin/kubelet
+{{if EnableEncryptionWithExternalKms}}
+Requires=kms.service
+{{end}}
+
+[Service]
+Restart=always
+EnvironmentFile=/etc/default/kubelet
+SuccessExitStatus=143
+ExecStartPre=/bin/bash /opt/azure/containers/kubelet.sh
+ExecStartPre=/bin/mkdir -p /var/lib/kubelet
+ExecStartPre=/bin/mkdir -p /var/lib/cni
+ExecStartPre=/bin/bash -c "if [ $(mount | grep \"/var/lib/kubelet\" | wc -l) -le 0 ] ; then /bin/mount --bind /var/lib/kubelet /var/lib/kubelet ; fi"
+ExecStartPre=/bin/mount --make-shared /var/lib/kubelet
+{{/* This is a partial workaround to this upstream Kubernetes issue: */}}
+{{/* https://github.com/kubernetes/kubernetes/issues/41916#issuecomment-312428731 */}}
+ExecStartPre=/sbin/sysctl -w net.ipv4.tcp_retries2=8
+ExecStartPre=/sbin/sysctl -w net.core.somaxconn=16384
+ExecStartPre=/sbin/sysctl -w net.ipv4.tcp_max_syn_backlog=16384
+ExecStartPre=/sbin/sysctl -w net.core.message_cost=40
+ExecStartPre=/sbin/sysctl -w net.core.message_burst=80
+
+ExecStartPre=/bin/bash -c "if [ $(nproc) -gt 8 ]; then /sbin/sysctl -w net.ipv4.neigh.default.gc_thresh1=4096; fi"
+ExecStartPre=/bin/bash -c "if [ $(nproc) -gt 8 ]; then /sbin/sysctl -w net.ipv4.neigh.default.gc_thresh2=8192; fi"
+ExecStartPre=/bin/bash -c "if [ $(nproc) -gt 8 ]; then /sbin/sysctl -w net.ipv4.neigh.default.gc_thresh3=16384; fi"
+
+ExecStartPre=-/sbin/ebtables -t nat --list
+ExecStartPre=-/sbin/iptables -t nat --numeric --list
+ExecStart=/usr/local/bin/kubelet \
+        {{GetStandaloneKubeletConfig}} \
+        --v=2 
+        
+[Install]
+WantedBy=multi-user.target
+`)
+
+func k8sCloudInitArtifactsKubeletStandaloneServiceBytes() ([]byte, error) {
+	return _k8sCloudInitArtifactsKubeletStandaloneService, nil
+}
+
+func k8sCloudInitArtifactsKubeletStandaloneService() (*asset, error) {
+	bytes, err := k8sCloudInitArtifactsKubeletStandaloneServiceBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "k8s/cloud-init/artifacts/kubelet-standalone.service", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _k8sCloudInitArtifactsKubeletService = []byte(`[Unit]
 Description=Kubelet
 ConditionPathExists=/usr/local/bin/kubelet
@@ -39502,7 +39555,7 @@ write_files:
       {{if IsMasterVirtualMachineScaleSets}}
         server: <SERVERIP>
       {{else}}
-        server: {{WrapAsVerbatim "concat('https://', variables('masterPrivateIpAddrs')[copyIndex(variables('masterOffset'))], ':443')"}}
+        server: https://localhost:443
       {{end}}
     users:
     - name: client
@@ -39575,8 +39628,8 @@ MASTER_CONTAINER_ADDONS_PLACEHOLDER
 {{if IsAzureStackCloud }}
     AZURE_ENVIRONMENT_FILEPATH=/etc/kubernetes/azurestackcloud.json
 {{end}}
+    KUBELET_REGISTER_NODE=--register-node=false
 {{if AnyAgentIsLinux}}
-    KUBELET_REGISTER_NODE=--register-node=true
     KUBELET_REGISTER_WITH_TAINTS=--register-with-taints=node-role.kubernetes.io/master=true:NoSchedule
 {{end}}
     #EOF
@@ -39688,13 +39741,21 @@ MASTER_CONTAINER_ADDONS_PLACEHOLDER
   {{end}}
 {{end}}
     #EOF
-
+    
 {{if IsAzureStackCloud}}
 - path: "/etc/kubernetes/azurestackcloud.json"
   permissions: "0600"
   owner: "root"
   content: |
     {{WrapAsVariable "environmentJSON"}}
+{{end}}
+
+{{if IsStandaloneKubelet}}
+- path: "/etc/kubernetes/azure.overwrite.json"
+  permissions: "0600"
+  owner: "root"
+  content: |
+    {{WrapAsVariable "cloudProviderConfigJSON"}}
 {{end}}
 
 {{if .MasterProfile.IsCoreOS}}
@@ -47023,6 +47084,7 @@ var _bindata = map[string]func() (*asset, error){
 	"k8s/cloud-init/artifacts/kms.service":                                    k8sCloudInitArtifactsKmsService,
 	"k8s/cloud-init/artifacts/kubelet-monitor.service":                        k8sCloudInitArtifactsKubeletMonitorService,
 	"k8s/cloud-init/artifacts/kubelet-monitor.timer":                          k8sCloudInitArtifactsKubeletMonitorTimer,
+	"k8s/cloud-init/artifacts/kubelet-standalone.service":                     k8sCloudInitArtifactsKubeletStandaloneService,
 	"k8s/cloud-init/artifacts/kubelet.service":                                k8sCloudInitArtifactsKubeletService,
 	"k8s/cloud-init/artifacts/label-nodes.service":                            k8sCloudInitArtifactsLabelNodesService,
 	"k8s/cloud-init/artifacts/label-nodes.sh":                                 k8sCloudInitArtifactsLabelNodesSh,
