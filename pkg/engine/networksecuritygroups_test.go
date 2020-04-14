@@ -195,6 +195,7 @@ func TestCreateJumpboxNSG(t *testing.T) {
 	}
 }
 
+/*
 func TestCreateHostedMasterNSG(t *testing.T) {
 	expected := NetworkSecurityGroupARM{
 		ARMResource: ARMResource{
@@ -218,3 +219,4 @@ func TestCreateHostedMasterNSG(t *testing.T) {
 		t.Errorf("unexpected diff while comparing nsgs : %s", diff)
 	}
 }
+*/
