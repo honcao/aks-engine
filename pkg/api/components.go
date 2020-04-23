@@ -221,23 +221,29 @@ func synthesizeComponentsConfig(components []KubernetesComponent, defaultCompone
 }
 
 func getAPIServerDefaultCommandString(cs *ContainerService) string {
-	if common.IsKubernetesVersionGe(cs.Properties.OrchestratorProfile.OrchestratorVersion, "1.17.0") {
-		return "\"kube-apiserver\""
-	}
+	/*
+		if common.IsKubernetesVersionGe(cs.Properties.OrchestratorProfile.OrchestratorVersion, "1.17.0") {
+			return "\"kube-apiserver\""
+		}
+	*/
 	return "\"/hyperkube\", \"kube-apiserver\""
 }
 
 func getControllerManagerDefaultCommandString(cs *ContainerService) string {
-	if common.IsKubernetesVersionGe(cs.Properties.OrchestratorProfile.OrchestratorVersion, "1.17.0") {
-		return "\"kube-controller-manager\""
-	}
+	/*
+		if common.IsKubernetesVersionGe(cs.Properties.OrchestratorProfile.OrchestratorVersion, "1.17.0") {
+			return "\"kube-controller-manager\""
+		}
+	*/
 	return "\"/hyperkube\", \"kube-controller-manager\""
 }
 
 func getSchedulerDefaultCommandString(cs *ContainerService) string {
-	if common.IsKubernetesVersionGe(cs.Properties.OrchestratorProfile.OrchestratorVersion, "1.17.0") {
-		return "\"kube-scheduler\""
-	}
+	/*
+		if common.IsKubernetesVersionGe(cs.Properties.OrchestratorProfile.OrchestratorVersion, "1.17.0") {
+			return "\"kube-scheduler\""
+		}
+	*/
 	return "\"/hyperkube\", \"kube-scheduler\""
 }
 

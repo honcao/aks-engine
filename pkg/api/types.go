@@ -2049,9 +2049,11 @@ func (p *Properties) IsNVIDIADevicePluginEnabled() bool {
 
 // GetKubernetesVersion returns the cluster Kubernetes version, with the Azure Stack suffix if Azure Stack Cloud.
 func (p *Properties) GetKubernetesVersion() string {
-	if p.IsAzureStackCloud() {
-		return p.OrchestratorProfile.OrchestratorVersion + AzureStackSuffix
-	}
+	/*
+		if p.IsAzureStackCloud() {
+			return p.OrchestratorProfile.OrchestratorVersion + AzureStackSuffix
+		}
+	*/
 	return p.OrchestratorProfile.OrchestratorVersion
 }
 

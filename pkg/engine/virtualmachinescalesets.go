@@ -430,19 +430,22 @@ func CreateAgentVMSS(cs *api.ContainerService, profile *api.AgentPoolProfile) Vi
 	associateAddonIdentitiesToVMSS(cs.Properties.AddonProfiles, &virtualMachineScaleSet)
 
 	vmssProperties := compute.VirtualMachineScaleSetProperties{
-		SinglePlacementGroup: profile.SinglePlacementGroup,
-		Overprovision:        profile.VMSSOverProvisioningEnabled,
 		UpgradePolicy: &compute.UpgradePolicy{
 			Mode: compute.Manual,
 		},
 	}
 
-	if profile.PlatformFaultDomainCount != nil {
-		vmssProperties.PlatformFaultDomainCount = to.Int32Ptr(int32(*profile.PlatformFaultDomainCount))
-	}
+	if !cs.Properties.IsAzureStackCloud() {
+		if profile.PlatformFaultDomainCount != nil {
+			vmssProperties.PlatformFaultDomainCount = to.Int32Ptr(int32(*profile.PlatformFaultDomainCount))
+		}
 
-	if to.Bool(profile.VMSSOverProvisioningEnabled) {
-		vmssProperties.DoNotRunExtensionsOnOverprovisionedVMs = to.BoolPtr(true)
+		vmssProperties.SinglePlacementGroup = profile.SinglePlacementGroup
+		vmssProperties.Overprovision = profile.VMSSOverProvisioningEnabled
+
+		if to.Bool(profile.VMSSOverProvisioningEnabled) {
+			vmssProperties.DoNotRunExtensionsOnOverprovisionedVMs = to.BoolPtr(true)
+		}
 	}
 
 	vmssVMProfile := compute.VirtualMachineScaleSetVMProfile{}

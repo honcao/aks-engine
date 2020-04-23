@@ -1926,12 +1926,6 @@ func (a *Properties) validateAzureStackSupport() error {
 		if a.MasterProfile.AvailabilityProfile == VirtualMachineScaleSets {
 			return errors.Errorf("masterProfile.availabilityProfile should be set to '%s' on Azure Stack clouds", AvailabilitySet)
 		}
-		for _, agentPool := range a.AgentPoolProfiles {
-			pool := agentPool
-			if pool.AvailabilityProfile != AvailabilitySet {
-				return errors.Errorf("agentPoolProfiles[%s].availabilityProfile should be set to '%s' on Azure Stack clouds", pool.Name, AvailabilitySet)
-			}
-		}
 	}
 	return nil
 }

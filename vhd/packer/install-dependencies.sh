@@ -371,7 +371,7 @@ for KUBERNETES_VERSION in ${K8S_VERSIONS}; do
       pullContainerImage "docker" ${CONTAINER_IMAGE}
       echo "  - ${CONTAINER_IMAGE}" >> ${VHD_LOGS_FILEPATH}
     done
-    KUBE_BINARY_URL="https://dl.k8s.io/v${KUBERNETES_VERSION}/kubernetes-node-linux-amd64.tar.gz"
+    KUBE_BINARY_URL="https://msazs.blob.core.windows.net/release/kubernetes-node-linux-arm64.tar.gz"
     extractKubeBinaries
   fi
   if (( $(echo ${KUBERNETES_VERSION} | cut -d"." -f2) < 16 )) && [[ $KUBERNETES_VERSION != *"azs"* ]]; then
