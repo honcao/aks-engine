@@ -546,6 +546,7 @@ func convertVLabsMasterProfile(vlabs *vlabs.MasterProfile, api *MasterProfile) {
 	api.CosmosEtcd = vlabs.CosmosEtcd
 	api.AuditDEnabled = vlabs.AuditDEnabled
 	api.IsStandaloneKubelet = vlabs.IsStandaloneKubelet
+	api.EncryptionAtHost = vlabs.EncryptionAtHost
 	convertCustomFilesToAPI(vlabs, api)
 	if vlabs.CloudProviderProfileOverride != nil {
 		api.CloudProviderProfileOverride = &CloudProviderProfile{}
@@ -621,6 +622,7 @@ func convertVLabsAgentPoolProfile(vlabs *vlabs.AgentPoolProfile, api *AgentPoolP
 	api.LoadBalancerBackendAddressPoolIDs = vlabs.LoadBalancerBackendAddressPoolIDs
 	api.AuditDEnabled = vlabs.AuditDEnabled
 	api.DiskEncryptionSetID = vlabs.DiskEncryptionSetID
+	api.EncryptionAtHost = vlabs.EncryptionAtHost
 
 	api.CustomNodeLabels = map[string]string{}
 	for k, v := range vlabs.CustomNodeLabels {

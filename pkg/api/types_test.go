@@ -266,6 +266,13 @@ func TestAgentPoolProfileIsVHDDistro(t *testing.T) {
 			},
 			expected: false,
 		},
+		{
+			name: "ubuntu 18.04 gen2 non-VHD distro",
+			ap: AgentPoolProfile{
+				Distro: Ubuntu1804Gen2,
+			},
+			expected: false,
+		},
 	}
 
 	for _, c := range cases {
@@ -396,6 +403,13 @@ func TestAgentPoolProfileIsUbuntuNonVHD(t *testing.T) {
 			},
 			expected: true,
 		},
+		{
+			name: "ubuntu 18.04 gen2 non-VHD distro",
+			ap: AgentPoolProfile{
+				Distro: Ubuntu1804Gen2,
+			},
+			expected: true,
+		},
 	}
 
 	for _, c := range cases {
@@ -450,6 +464,13 @@ func TestMasterProfileIsVHDDistro(t *testing.T) {
 			},
 			expected: false,
 		},
+		{
+			name: "ubuntu 18.04 gen2 non-VHD distro",
+			m: MasterProfile{
+				Distro: Ubuntu1804Gen2,
+			},
+			expected: false,
+		},
 	}
 
 	for _, c := range cases {
@@ -501,6 +522,13 @@ func TestMasterProfileIsUbuntuNonVHD(t *testing.T) {
 			name: "ubuntu 18.04 non-VHD distro",
 			m: MasterProfile{
 				Distro: Ubuntu1804,
+			},
+			expected: true,
+		},
+		{
+			name: "ubuntu 18.04 gen2 non-VHD distro",
+			m: MasterProfile{
+				Distro: Ubuntu1804Gen2,
 			},
 			expected: true,
 		},
@@ -658,16 +686,17 @@ func TestMasterProfileGetCosmosEndPointURI(t *testing.T) {
 
 func TestHasStorageProfile(t *testing.T) {
 	cases := []struct {
-		name              string
-		p                 Properties
-		expectedHasMD     bool
-		expectedHasSA     bool
-		expectedMasterMD  bool
-		expectedAgent0E   bool
-		expectedAgent0MD  bool
-		expectedPrivateJB bool
-		expectedHasDisks  bool
-		expectedDesID     string
+		name                     string
+		p                        Properties
+		expectedHasMD            bool
+		expectedHasSA            bool
+		expectedMasterMD         bool
+		expectedAgent0E          bool
+		expectedAgent0MD         bool
+		expectedPrivateJB        bool
+		expectedHasDisks         bool
+		expectedDesID            string
+                expectedEncryptionAtHost bool
 	}{
 		{
 			name: "Storage Account",
@@ -869,6 +898,35 @@ func TestHasStorageProfile(t *testing.T) {
 			expectedPrivateJB: false,
 			expectedDesID:     "DiskEncryptionSetID",
 		},
+		{
+			name: "EncryptionAtHost setting",
+			p: Properties{
+				OrchestratorProfile: &OrchestratorProfile{
+					OrchestratorType: Kubernetes,
+				},
+				MasterProfile: &MasterProfile{
+					StorageProfile:   ManagedDisks,
+					EncryptionAtHost: to.BoolPtr(true),
+				},
+				AgentPoolProfiles: []*AgentPoolProfile{
+					{
+						StorageProfile:   ManagedDisks,
+						EncryptionAtHost: to.BoolPtr(true),
+					},
+					{
+						StorageProfile:   ManagedDisks,
+						EncryptionAtHost: to.BoolPtr(true),
+					},
+				},
+			},
+			expectedHasMD:            true,
+			expectedHasSA:            false,
+			expectedMasterMD:         true,
+			expectedAgent0MD:         true,
+			expectedAgent0E:          false,
+			expectedPrivateJB:        false,
+			expectedEncryptionAtHost: true,
+		},
 	}
 
 	for _, c := range cases {
@@ -886,6 +944,9 @@ func TestHasStorageProfile(t *testing.T) {
 			}
 			if c.p.MasterProfile.IsStorageAccount() == c.expectedMasterMD {
 				t.Fatalf("expected IsStorageAccount() to return %t but instead returned %t", !c.expectedMasterMD, c.p.MasterProfile.IsStorageAccount())
+			}
+			if to.Bool(c.p.MasterProfile.EncryptionAtHost) != c.expectedEncryptionAtHost {
+				t.Fatalf("expected EncryptionAtHost to return %v but instead returned %v", c.expectedEncryptionAtHost, to.Bool(c.p.MasterProfile.EncryptionAtHost))
 			}
 			if c.p.AgentPoolProfiles[0].IsManagedDisks() != c.expectedAgent0MD {
 				t.Fatalf("expected IsManagedDisks() to return %t but instead returned %t", c.expectedAgent0MD, c.p.AgentPoolProfiles[0].IsManagedDisks())
@@ -905,6 +966,9 @@ func TestHasStorageProfile(t *testing.T) {
 			}
 			if c.p.AgentPoolProfiles[0].DiskEncryptionSetID != c.expectedDesID {
 				t.Fatalf("expected DiskEncryptionSetID to return %s but instead returned %s", c.expectedDesID, c.p.AgentPoolProfiles[0].DiskEncryptionSetID)
+			}
+			if to.Bool(c.p.AgentPoolProfiles[0].EncryptionAtHost) != c.expectedEncryptionAtHost {
+				t.Fatalf("expected EncryptionAtHost to return %v but instead returned %v", c.expectedEncryptionAtHost, to.Bool(c.p.AgentPoolProfiles[0].EncryptionAtHost))
 			}
 		})
 	}
@@ -1836,6 +1900,15 @@ func TestMasterIsUbuntu(t *testing.T) {
 			p: Properties{
 				MasterProfile: &MasterProfile{
 					Count:  1,
+					Distro: Ubuntu1804Gen2,
+				},
+			},
+			expected: true,
+		},
+		{
+			p: Properties{
+				MasterProfile: &MasterProfile{
+					Count:  1,
 					Distro: ACC1604,
 				},
 			},
@@ -1855,6 +1928,15 @@ func TestMasterIsUbuntu(t *testing.T) {
 				MasterProfile: &MasterProfile{
 					Count:  1,
 					Distro: Ubuntu1804,
+				},
+			},
+			expected: true,
+		},
+		{
+			p: Properties{
+				MasterProfile: &MasterProfile{
+					Count:  1,
+					Distro: Ubuntu1804Gen2,
 				},
 			},
 			expected: true,
@@ -1938,6 +2020,17 @@ func TestAgentPoolIsUbuntu(t *testing.T) {
 				AgentPoolProfiles: []*AgentPoolProfile{
 					{
 						Count:  1,
+						Distro: Ubuntu1804Gen2,
+					},
+				},
+			},
+			expected: true,
+		},
+		{
+			p: Properties{
+				AgentPoolProfiles: []*AgentPoolProfile{
+					{
+						Count:  1,
 						Distro: ACC1604,
 					},
 				},
@@ -1950,17 +2043,6 @@ func TestAgentPoolIsUbuntu(t *testing.T) {
 					{
 						Count:  1,
 						Distro: AKSUbuntu1804,
-					},
-				},
-			},
-			expected: true,
-		},
-		{
-			p: Properties{
-				AgentPoolProfiles: []*AgentPoolProfile{
-					{
-						Count:  1,
-						Distro: Ubuntu1804,
 					},
 				},
 			},
@@ -2054,6 +2136,15 @@ func TestIsUbuntuDistroForAllNodes(t *testing.T) {
 			p: Properties{
 				MasterProfile: &MasterProfile{
 					Count:  1,
+					Distro: Ubuntu1804Gen2,
+				},
+			},
+			expected: true,
+		},
+		{
+			p: Properties{
+				MasterProfile: &MasterProfile{
+					Count:  1,
 					Distro: Ubuntu,
 				},
 				AgentPoolProfiles: []*AgentPoolProfile{
@@ -2082,7 +2173,7 @@ func TestIsUbuntuDistroForAllNodes(t *testing.T) {
 					},
 					{
 						Count:  1,
-						Distro: Ubuntu1804,
+						Distro: Ubuntu1804Gen2,
 					},
 				},
 			},
@@ -2238,7 +2329,7 @@ func TestIsVHDDistroForAllNodes(t *testing.T) {
 					},
 					{
 						Count:  1,
-						Distro: Ubuntu1804,
+						Distro: Ubuntu1804Gen2,
 					},
 				},
 			},
@@ -2366,6 +2457,15 @@ func TestHasUbuntuDistroNodes(t *testing.T) {
 			p: Properties{
 				MasterProfile: &MasterProfile{
 					Count:  1,
+					Distro: Ubuntu1804Gen2,
+				},
+			},
+			expected: true,
+		},
+		{
+			p: Properties{
+				MasterProfile: &MasterProfile{
+					Count:  1,
 					Distro: Ubuntu,
 				},
 				AgentPoolProfiles: []*AgentPoolProfile{
@@ -2385,7 +2485,7 @@ func TestHasUbuntuDistroNodes(t *testing.T) {
 			p: Properties{
 				MasterProfile: &MasterProfile{
 					Count:  1,
-					Distro: Ubuntu1804,
+					Distro: Ubuntu1804Gen2,
 				},
 				AgentPoolProfiles: []*AgentPoolProfile{
 					{
@@ -2514,6 +2614,15 @@ func TestHasUbuntu1604DistroNodes(t *testing.T) {
 				MasterProfile: &MasterProfile{
 					Count:  1,
 					Distro: Ubuntu1804,
+				},
+			},
+			expected: false,
+		},
+		{
+			p: Properties{
+				MasterProfile: &MasterProfile{
+					Count:  1,
+					Distro: Ubuntu1804Gen2,
 				},
 			},
 			expected: false,
@@ -2670,6 +2779,15 @@ func TestHasUbuntu1804DistroNodes(t *testing.T) {
 				MasterProfile: &MasterProfile{
 					Count:  1,
 					Distro: Ubuntu1804,
+				},
+			},
+			expected: true,
+		},
+		{
+			p: Properties{
+				MasterProfile: &MasterProfile{
+					Count:  1,
+					Distro: Ubuntu1804Gen2,
 				},
 			},
 			expected: true,
