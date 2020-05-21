@@ -88,6 +88,12 @@ type Properties struct {
 	FeatureFlags            *FeatureFlags            `json:"featureFlags,omitempty"`
 	CustomCloudProfile      *CustomCloudProfile      `json:"customCloudProfile,omitempty"`
 	TelemetryProfile        *TelemetryProfile        `json:"telemetryProfile,omitempty"`
+	CustomCloudEnv          *CustomCloudEnv          `json:"customCloudEnv,omitempty"`
+}
+
+// CustomCloudEnv represents the custom cloud env info of the AKS cluster.
+type CustomCloudEnv struct {
+	Name string `json:"Name,omitempty"`
 }
 
 // ClusterMetadata represents the metadata of the AKS cluster.
@@ -124,6 +130,7 @@ type FeatureFlags struct {
 	BlockOutboundInternet    bool `json:"blockOutboundInternet,omitempty"`
 	EnableIPv6DualStack      bool `json:"enableIPv6DualStack,omitempty"`
 	EnableTelemetry          bool `json:"enableTelemetry,omitempty"`
+	EnableIPv6Only           bool `json:"enableIPv6Only,omitempty"`
 }
 
 // ServicePrincipalProfile contains the client and secret used by the cluster for Azure Resource CRUD
@@ -209,6 +216,8 @@ type CustomNodesDNS struct {
 type WindowsProfile struct {
 	AdminUsername             string            `json:"adminUsername"`
 	AdminPassword             string            `json:"adminPassword" conform:"redact"`
+	CSIProxyURL               string            `json:"csiProxyURL,omitempty"`
+	EnableCSIProxy            *bool             `json:"enableCSIProxy,omitempty"`
 	ImageRef                  *ImageReference   `json:"imageReference,omitempty"`
 	ImageVersion              string            `json:"imageVersion"`
 	WindowsImageSourceURL     string            `json:"windowsImageSourceURL"`
@@ -336,7 +345,7 @@ type PrivateCluster struct {
 type PrivateJumpboxProfile struct {
 	Name           string `json:"name" validate:"required"`
 	VMSize         string `json:"vmSize" validate:"required"`
-	OSDiskSizeGB   int    `json:"osDiskSizeGB,omitempty" validate:"min=0,max=1023"`
+	OSDiskSizeGB   int    `json:"osDiskSizeGB,omitempty" validate:"min=0,max=2048"`
 	Username       string `json:"username,omitempty"`
 	PublicKey      string `json:"publicKey" validate:"required"`
 	StorageProfile string `json:"storageProfile,omitempty"`
@@ -537,6 +546,7 @@ type MasterProfile struct {
 	FQDN string `json:"fqdn,omitempty"`
 	// True: uses cosmos etcd endpoint instead of installing etcd on masters
 	CosmosEtcd                   *bool                 `json:"cosmosEtcd,omitempty"`
+	ProximityPlacementGroupID    string                `json:"proximityPlacementGroupID,omitempty"`
 	IsStandaloneKubelet          *bool                 `json:"isStandaloneKubelet,omitempty"`
 	CloudProviderProfileOverride *CloudProviderProfile `json:"cloudProviderProfileOverride,omitempty"`
 }
@@ -653,6 +663,7 @@ type AgentPoolProfile struct {
 	CustomVMTags                        map[string]string    `json:"customVMTags,omitempty"`
 	DiskEncryptionSetID                 string               `json:"diskEncryptionSetID,omitempty"`
 	EncryptionAtHost                    *bool                `json:"encryptionAtHost,omitempty"`
+	ProximityPlacementGroupID           string               `json:"proximityPlacementGroupID,omitempty"`
 }
 
 // AgentPoolProfileRole represents an agent role
@@ -1675,6 +1686,14 @@ func (a *AgentPoolProfile) GetKubernetesLabels(rg string, deprecated bool) strin
 	return buf.String()
 }
 
+// IsCSIProxyEnabled returns true if csi proxy service should be enable for Windows nodes
+func (w *WindowsProfile) IsCSIProxyEnabled() bool {
+	if w.EnableCSIProxy != nil {
+		return *w.EnableCSIProxy
+	}
+	return common.DefaultEnableCSIProxyWindows
+}
+
 // HasSecrets returns true if the customer specified secrets to install
 func (w *WindowsProfile) HasSecrets() bool {
 	return len(w.Secrets) > 0
@@ -2224,6 +2243,8 @@ func (f *FeatureFlags) IsFeatureEnabled(feature string) bool {
 			return f.EnableIPv6DualStack
 		case "EnableTelemetry":
 			return f.EnableTelemetry
+		case "EnableIPv6Only":
+			return f.EnableIPv6Only
 		default:
 			return false
 		}
@@ -2248,6 +2269,12 @@ func (cs *ContainerService) IsAKSBillingEnabled() bool {
 // GetAzureProdFQDN returns the formatted FQDN string for a given apimodel.
 func (cs *ContainerService) GetAzureProdFQDN() string {
 	return FormatProdFQDNByLocation(cs.Properties.MasterProfile.DNSPrefix, cs.Location, cs.Properties.GetCustomCloudName())
+}
+
+// IsAKSCustomCloud checks if it's in AKS custom cloud
+func (cs *ContainerService) IsAKSCustomCloud() bool {
+	return cs.Properties.CustomCloudEnv != nil &&
+		strings.EqualFold(cs.Properties.CustomCloudEnv.Name, "akscustom")
 }
 
 // ProvisionScriptParametersInput is the struct used to pass in Azure environment variables and secrets
@@ -2319,6 +2346,7 @@ func (cs *ContainerService) GetProvisionScriptParametersCommon(input ProvisionSc
 		"KMS_PROVIDER_VAULT_NAME":              input.ClusterKeyVaultName,
 		"IS_HOSTED_MASTER":                     strconv.FormatBool(cs.Properties.IsHostedMasterProfile()),
 		"IS_IPV6_DUALSTACK_FEATURE_ENABLED":    strconv.FormatBool(cs.Properties.FeatureFlags.IsFeatureEnabled("EnableIPv6DualStack")),
+		"IS_IPV6_ENABLED":                      strconv.FormatBool(cs.Properties.FeatureFlags.IsFeatureEnabled("EnableIPv6Only") || cs.Properties.FeatureFlags.IsFeatureEnabled("EnableIPv6DualStack")),
 		"AUTHENTICATION_METHOD":                cs.Properties.GetCustomCloudAuthenticationMethod(),
 		"IDENTITY_SYSTEM":                      cs.Properties.GetCustomCloudIdentitySystem(),
 		"NETWORK_API_VERSION":                  APIVersionNetwork,

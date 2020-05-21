@@ -491,12 +491,16 @@ func getContainerServiceFuncMap(cs *api.ContainerService) template.FuncMap {
 			var parts = []string{
 				kubernetesWindowsAgentFunctionsPS1,
 				kubernetesWindowsConfigFunctionsPS1,
+				kubernetesWindowsCsiProxyFunctionsPS1,
 				kubernetesWindowsKubeletFunctionsPS1,
 				kubernetesWindowsCniFunctionsPS1,
 				kubernetesWindowsAzureCniFunctionsPS1,
 				kubernetesWindowsLogsCleanupPS1,
 				kubernetesWindowsNodeResetPS1,
-				kubernetesWindowsOpenSSHFunctionPS1}
+				kubernetesWindowsOpenSSHFunctionPS1,
+				kubeletStartPS1,
+				kubeproxyStartPS1,
+			}
 
 			// Create a buffer, new zip
 			buf := new(bytes.Buffer)
@@ -675,6 +679,9 @@ func getContainerServiceFuncMap(cs *api.ContainerService) template.FuncMap {
 		"IsIPv6DualStackFeatureEnabled": func() bool {
 			return cs.Properties.FeatureFlags.IsFeatureEnabled("EnableIPv6DualStack")
 		},
+		"IsIPv6Enabled": func() bool {
+			return cs.Properties.FeatureFlags.IsFeatureEnabled("EnableIPv6Only") || cs.Properties.FeatureFlags.IsFeatureEnabled("EnableIPv6DualStack")
+		},
 		"GetBase64EncodedEnvironmentJSON": func() string {
 			customEnvironmentJSON, _ := cs.Properties.GetCustomEnvironmentJSON(false)
 			return base64.StdEncoding.EncodeToString([]byte(customEnvironmentJSON))
@@ -775,6 +782,12 @@ func getContainerServiceFuncMap(cs *api.ContainerService) template.FuncMap {
 		},
 		"GetTargetEnvironment": func() string {
 			return helpers.GetTargetEnv(cs.Location, cs.Properties.GetCustomCloudName())
+		},
+		"IsAKSCustomCloud": func() bool {
+			return cs.IsAKSCustomCloud()
+		},
+		"GetInitAKSCustomCloudFilepath": func() string {
+			return initAKSCustomCloudFilepath
 		},
 		"GetCustomCloudConfigCSEScriptFilepath": func() string {
 			return customCloudConfigCSEScriptFilepath
@@ -921,7 +934,14 @@ func (t *TemplateGenerator) getParameterDescMap(containerService *api.ContainerS
 
 func generateUserAssignedIdentityClientIDParameter(isUserAssignedIdentity bool) string {
 	if isUserAssignedIdentity {
-		return "' USER_ASSIGNED_IDENTITY_ID=',reference(concat('Microsoft.ManagedIdentity/userAssignedIdentities/', variables('userAssignedID')), '2018-11-30').clientId, ' '"
+		return "' USER_ASSIGNED_IDENTITY_ID=',reference(variables('userAssignedIDReference'), variables('apiVersionManagedIdentity')).clientId, ' '"
 	}
 	return "' USER_ASSIGNED_IDENTITY_ID=',' '"
+}
+
+func generateUserAssignedIdentityClientIDParameterForWindows(isUserAssignedIdentity bool) string {
+	if isUserAssignedIdentity {
+		return "' -UserAssignedClientID ',reference(variables('userAssignedIDReference'), variables('apiVersionManagedIdentity')).clientId,"
+	}
+	return ""
 }

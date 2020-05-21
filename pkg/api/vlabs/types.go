@@ -59,6 +59,7 @@ type FeatureFlags struct {
 	BlockOutboundInternet    bool `json:"blockOutboundInternet,omitempty"`
 	EnableIPv6DualStack      bool `json:"enableIPv6DualStack,omitempty"`
 	EnableTelemetry          bool `json:"enableTelemetry,omitempty"`
+	EnableIPv6Only           bool `json:"enableIPv6Only,omitempty"`
 }
 
 // ServicePrincipalProfile contains the client and secret used by the cluster for Azure Resource CRUD
@@ -161,6 +162,8 @@ type CustomNodesDNS struct {
 type WindowsProfile struct {
 	AdminUsername          string            `json:"adminUsername,omitempty"`
 	AdminPassword          string            `json:"adminPassword,omitempty"`
+	CSIProxyURL            string            `json:"csiProxyURL,omitempty"`
+	EnableCSIProxy         *bool             `json:"enableCSIProxy,omitempty"`
 	ImageRef               *ImageReference   `json:"imageReference,omiteempty"`
 	ImageVersion           string            `json:"imageVersion,omitempty"`
 	WindowsImageSourceURL  string            `json:"WindowsImageSourceUrl"`
@@ -273,7 +276,7 @@ type PrivateCluster struct {
 type PrivateJumpboxProfile struct {
 	Name           string `json:"name" validate:"required"`
 	VMSize         string `json:"vmSize" validate:"required"`
-	OSDiskSizeGB   int    `json:"osDiskSizeGB,omitempty" validate:"min=0,max=1023"`
+	OSDiskSizeGB   int    `json:"osDiskSizeGB,omitempty" validate:"min=0,max=2048"`
 	Username       string `json:"username,omitempty"`
 	PublicKey      string `json:"publicKey" validate:"required"`
 	StorageProfile string `json:"storageProfile,omitempty"`
@@ -397,7 +400,7 @@ type MasterProfile struct {
 	DNSPrefix                 string            `json:"dnsPrefix" validate:"required"`
 	SubjectAltNames           []string          `json:"subjectAltNames"`
 	VMSize                    string            `json:"vmSize" validate:"required"`
-	OSDiskSizeGB              int               `json:"osDiskSizeGB,omitempty" validate:"min=0,max=1023"`
+	OSDiskSizeGB              int               `json:"osDiskSizeGB,omitempty" validate:"min=0,max=2048"`
 	VnetSubnetID              string            `json:"vnetSubnetID,omitempty"`
 	VnetCidr                  string            `json:"vnetCidr,omitempty"`
 	AgentVnetSubnetID         string            `json:"agentVnetSubnetID,omitempty"`
@@ -434,6 +437,7 @@ type MasterProfile struct {
 
 	// True: uses cosmos etcd endpoint instead of installing etcd on masters
 	CosmosEtcd                   *bool                 `json:"cosmosEtcd,omitempty"`
+	ProximityPlacementGroupID    string                `json:"proximityPlacementGroupID,omitempty"`
 	IsStandaloneKubelet          *bool                 `json:"isStandaloneKubelet,omitempty"`
 	CloudProviderProfileOverride *CloudProviderProfile `json:"cloudProviderProfileOverride,omitempty"`
 }
@@ -508,7 +512,7 @@ type AgentPoolProfile struct {
 	Name                                string               `json:"name" validate:"required"`
 	Count                               int                  `json:"count" validate:"required,min=1,max=100"`
 	VMSize                              string               `json:"vmSize" validate:"required"`
-	OSDiskSizeGB                        int                  `json:"osDiskSizeGB,omitempty" validate:"min=0,max=1023"`
+	OSDiskSizeGB                        int                  `json:"osDiskSizeGB,omitempty" validate:"min=0,max=2048"`
 	DNSPrefix                           string               `json:"dnsPrefix,omitempty"`
 	OSType                              OSType               `json:"osType,omitempty"`
 	Ports                               []int                `json:"ports,omitempty" validate:"dive,min=1,max=65535"`
@@ -517,7 +521,7 @@ type AgentPoolProfile struct {
 	ScaleSetEvictionPolicy              string               `json:"scaleSetEvictionPolicy,omitempty" validate:"eq=Delete|eq=Deallocate|len=0"`
 	SpotMaxPrice                        *float64             `json:"spotMaxPrice,omitempty"`
 	StorageProfile                      string               `json:"storageProfile" validate:"eq=StorageAccount|eq=ManagedDisks|eq=Ephemeral|len=0"`
-	DiskSizesGB                         []int                `json:"diskSizesGB,omitempty" validate:"max=4,dive,min=1,max=1023"`
+	DiskSizesGB                         []int                `json:"diskSizesGB,omitempty" validate:"max=4,dive,min=1,max=32767"`
 	VnetSubnetID                        string               `json:"vnetSubnetID,omitempty"`
 	IPAddressCount                      int                  `json:"ipAddressCount,omitempty" validate:"min=0,max=256"`
 	Distro                              Distro               `json:"distro,omitempty"`
@@ -545,6 +549,8 @@ type AgentPoolProfile struct {
 	AvailabilityZones                 []string          `json:"availabilityZones,omitempty"`
 	EnableVMSSNodePublicIP            *bool             `json:"enableVMSSNodePublicIP,omitempty"`
 	LoadBalancerBackendAddressPoolIDs []string          `json:"loadBalancerBackendAddressPoolIDs,omitempty"`
+	SysctlDConfig                     map[string]string `json:"sysctldConfig,omitempty"`
+	ProximityPlacementGroupID         string            `json:"proximityPlacementGroupID,omitempty"`
 }
 
 // AgentPoolProfileRole represents an agent role
@@ -911,6 +917,14 @@ func (l *LinuxProfile) HasCustomNodesDNS() bool {
 	return false
 }
 
+// IsCSIProxyEnabled returns true if CSI proxy service should be enable for Windows nodes
+func (w *WindowsProfile) IsCSIProxyEnabled() bool {
+	if w.EnableCSIProxy != nil {
+		return *w.EnableCSIProxy
+	}
+	return common.DefaultEnableCSIProxyWindows
+}
+
 // IsSwarmMode returns true if this template is for Swarm Mode orchestrator
 func (o *OrchestratorProfile) IsSwarmMode() bool {
 	return o.OrchestratorType == SwarmMode
@@ -955,4 +969,9 @@ func (k *KubernetesConfig) IsAddonEnabled(addonName string) bool {
 // IsIPv6DualStackEnabled checks if IPv6DualStack feature is enabled
 func (f *FeatureFlags) IsIPv6DualStackEnabled() bool {
 	return f != nil && f.EnableIPv6DualStack
+}
+
+// IsIPv6OnlyEnabled checks if IPv6Only feature is enabled
+func (f *FeatureFlags) IsIPv6OnlyEnabled() bool {
+	return f != nil && f.EnableIPv6Only
 }
