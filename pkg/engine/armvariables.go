@@ -144,10 +144,11 @@ func getK8sMasterVars(cs *api.ContainerService) (map[string]interface{}, error) 
 		"kubeletSystemdService":     getBase64EncodedGzippedCustomScript(kubeletSystemdService, cs),
 	}
 
-	if masterProfile != nil && masterProfile.IsStandaloneKubelet != nil && *masterProfile.IsStandaloneKubelet == true {
-		cloudInitFiles["kubeletSystemdService"] = getBase64EncodedGzippedCustomScript(kubeletSystemdStandaloneService, cs)
-	}
-
+	/*	Disable the logic to use standalone kubelet
+		if masterProfile != nil && masterProfile.IsStandaloneKubelet != nil && *masterProfile.IsStandaloneKubelet == true {
+			cloudInitFiles["kubeletSystemdService"] = getBase64EncodedGzippedCustomScript(kubeletSystemdStandaloneService, cs)
+		}
+	*/
 	if !cs.Properties.IsVHDDistroForAllNodes() {
 		cloudInitFiles["provisionCIS"] = getBase64EncodedGzippedCustomScript(kubernetesCISScript, cs)
 		cloudInitFiles["kmsSystemdService"] = getBase64EncodedGzippedCustomScript(kmsSystemdService, cs)

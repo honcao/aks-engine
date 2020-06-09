@@ -560,6 +560,9 @@ func getContainerServiceFuncMap(cs *api.ContainerService) template.FuncMap {
 		"AnyAgentIsLinux": func() bool {
 			return cs.Properties.AnyAgentIsLinux()
 		},
+		"AnyAgentIsLinuxOrStandalone": func() bool {
+			return cs.Properties.AnyAgentIsLinux() || (cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.IsStandaloneKubelet != nil)
+		},
 		"IsNSeriesSKU": func(profile *api.AgentPoolProfile) bool {
 			return common.IsNvidiaEnabledSKU(profile.VMSize)
 		},
