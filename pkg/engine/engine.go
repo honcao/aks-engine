@@ -686,7 +686,7 @@ func getAddonFuncMap(addon api.KubernetesAddon, cs *api.ContainerService) templa
 			return (cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.IsStandaloneKubelet != nil && cs.Properties.MasterProfile.StorageProfile == api.StorageAccount) || (len(cs.Properties.AgentPoolProfiles) > 0 && cs.Properties.AgentPoolProfiles[0].StorageProfile == api.StorageAccount)
 		},
 		"NeedsManagedDiskStorageClasses": func() bool {
-			return (cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.IsStandaloneKubelet != nil && cs.Properties.MasterProfile.StorageProfile == api.StorageAccount) || (len(cs.Properties.AgentPoolProfiles) > 0 && cs.Properties.AgentPoolProfiles[0].StorageProfile == api.ManagedDisks)
+			return (cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.IsStandaloneKubelet != nil && cs.Properties.MasterProfile.StorageProfile == api.ManagedDisks) || (len(cs.Properties.AgentPoolProfiles) > 0 && cs.Properties.AgentPoolProfiles[0].StorageProfile == api.ManagedDisks)
 		},
 		"UsesCloudControllerManager": func() bool {
 			return to.Bool(cs.Properties.OrchestratorProfile.KubernetesConfig.UseCloudControllerManager)
