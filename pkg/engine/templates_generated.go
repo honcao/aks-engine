@@ -42556,6 +42556,8 @@ metadata:
   name: kube-addon-manager
   namespace: kube-system
   version: v1
+  labels:
+    component: kube-addon-manager
 spec:
   priorityClassName: system-node-critical
   hostNetwork: true
