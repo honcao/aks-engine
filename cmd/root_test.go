@@ -13,6 +13,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"gopkg.in/ini.v1"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/Azure/aks-engine/pkg/armhelpers"
 	"github.com/Azure/aks-engine/pkg/armhelpers/azurestack/testserver"
 	"github.com/Azure/aks-engine/pkg/helpers"
+	. "github.com/onsi/gomega"
 )
 
 //mockAuthProvider implements AuthProvider and allows in particular to stub out getClient()
@@ -47,11 +49,12 @@ func TestNewRootCmd(t *testing.T) {
 		t.Fatalf("root command should have use %s equal %s, short %s equal %s and long %s equal to %s", command.Use, rootName, command.Short, rootShortDescription, command.Long, rootLongDescription)
 	}
 	// The commands need to be listed in alphabetical order
-	expectedCommands := []*cobra.Command{newAddPoolCmd(), getCompletionCmd(command), newDeployCmd(), newGenerateCmd(), newGetVersionsCmd(), newOrchestratorsCmd(), newRotateCertsCmd(), newScaleCmd(), newUpgradeCmd(), newVersionCmd()}
+	expectedCommands := []*cobra.Command{newAddPoolCmd(), getCompletionCmd(command), newDeployCmd(), newGenerateCmd(), newGetLocationsCmd(), newGetLogsCmd(), newGetSkusCmd(), newGetVersionsCmd(), newOrchestratorsCmd(), newRotateCertsCmd(), newScaleCmd(), newUpgradeCmd(), newVersionCmd()}
 	rc := command.Commands()
+
 	for i, c := range expectedCommands {
 		if rc[i].Use != c.Use {
-			t.Fatalf("root command should have command %s", c.Use)
+			t.Fatalf("root command should have command %s, but found %s", c.Use, rc[i].Use)
 		}
 	}
 
@@ -189,8 +192,11 @@ func TestGetCloudSubFromAzConfig(t *testing.T) {
 func TestWriteCustomCloudProfile(t *testing.T) {
 	t.Parallel()
 
-	cs := prepareCustomCloudProfile()
-	if err := writeCustomCloudProfile(cs); err != nil {
+	cs, err := prepareCustomCloudProfile()
+	if err != nil {
+		t.Fatalf("failed to prepare custom cloud profile: %v", err)
+	}
+	if err = writeCustomCloudProfile(cs); err != nil {
 		t.Fatalf("failed to write custom cloud profile: %v", err)
 	}
 
@@ -199,7 +205,7 @@ func TestWriteCustomCloudProfile(t *testing.T) {
 		t.Fatal("failed to write custom cloud profile: err - AZURE_ENVIRONMENT_FILEPATH is empty")
 	}
 
-	if _, err := os.Stat(environmentFilePath); os.IsNotExist(err) {
+	if _, err = os.Stat(environmentFilePath); os.IsNotExist(err) {
 		// path/to/whatever does not exist
 		t.Fatalf("failed to write custom cloud profile: file %s does not exist", environmentFilePath)
 	}
@@ -218,7 +224,10 @@ func TestWriteCustomCloudProfile(t *testing.T) {
 func TestGetAzureStackClientWithClientSecret(t *testing.T) {
 	t.Parallel()
 
-	cs := prepareCustomCloudProfile()
+	cs, err := prepareCustomCloudProfile()
+	if err != nil {
+		t.Fatalf("failed to prepare custom cloud profile: %v", err)
+	}
 	subscriptionID, _ := uuid.Parse("cc6b141e-6afc-4786-9bf6-e3b9a5601460")
 
 	for _, tc := range []struct {
@@ -284,6 +293,118 @@ func TestGetAzureStackClientWithClientSecret(t *testing.T) {
 				if err == nil || !strings.HasPrefix(err.Error(), "--auth-method") {
 					t.Fatalf("failed to return error with invalid identity-system")
 				}
+			}
+		})
+	}
+}
+
+func TestValidateAuthArgs(t *testing.T) {
+	t.Parallel()
+	g := NewGomegaWithT(t)
+
+	validID := "cc6b141e-6afc-4786-9bf6-e3b9a5601460"
+	invalidID := "invalidID"
+
+	for _, tc := range []struct {
+		name     string
+		authArgs authArgs
+		expected error
+	}{
+		{
+			name: "AuthMethodIsRequired",
+			authArgs: authArgs{
+				AuthMethod: "",
+			},
+			expected: errors.New("--auth-method is a required parameter"),
+		},
+		{
+			name: "AlwaysExpectValidClientID",
+			authArgs: authArgs{
+				rawSubscriptionID:   validID,
+				rawClientID:         invalidID,
+				ClientSecret:        "secret",
+				AuthMethod:          "client_secret",
+				RawAzureEnvironment: "AZUREPUBLICCLOUD",
+			},
+			expected: errors.New(`parsing --client-id: invalid UUID length: 9`),
+		},
+		{
+			name: "AlwaysExpectValidClientID",
+			authArgs: authArgs{
+				rawSubscriptionID:   validID,
+				rawClientID:         invalidID,
+				ClientSecret:        "secret",
+				AuthMethod:          "client_certificate",
+				RawAzureEnvironment: "AZUREPUBLICCLOUD",
+			},
+			expected: errors.New(`parsing --client-id: invalid UUID length: 9`),
+		},
+		{
+			name: "ClientSecretAuthExpectsClientSecret",
+			authArgs: authArgs{
+				rawSubscriptionID:   validID,
+				rawClientID:         validID,
+				ClientSecret:        "",
+				AuthMethod:          "client_secret",
+				RawAzureEnvironment: "AZUREPUBLICCLOUD",
+			},
+			expected: errors.New(`--client-secret must be specified when --auth-method="client_secret"`),
+		},
+		{
+			name: "ValidClientSecretAuth",
+			authArgs: authArgs{
+				rawSubscriptionID:   validID,
+				rawClientID:         validID,
+				ClientSecret:        "secret",
+				AuthMethod:          "client_secret",
+				RawAzureEnvironment: "AZUREPUBLICCLOUD",
+			},
+			expected: nil,
+		},
+		{
+			name: "ClientCertificateAuthExpectsCertificatePath",
+			authArgs: authArgs{
+				rawSubscriptionID:   validID,
+				rawClientID:         validID,
+				CertificatePath:     "",
+				PrivateKeyPath:      "/a/path",
+				AuthMethod:          "client_certificate",
+				RawAzureEnvironment: "AZUREPUBLICCLOUD",
+			},
+			expected: errors.New(`--certificate-path and --private-key-path must be specified when --auth-method="client_certificate"`),
+		},
+		{
+			name: "ClientCertificateAuthExpectsPrivateKeyPath",
+			authArgs: authArgs{
+				rawSubscriptionID:   validID,
+				rawClientID:         validID,
+				CertificatePath:     "/a/path",
+				PrivateKeyPath:      "",
+				AuthMethod:          "client_certificate",
+				RawAzureEnvironment: "AZUREPUBLICCLOUD",
+			},
+			expected: errors.New(`--certificate-path and --private-key-path must be specified when --auth-method="client_certificate"`),
+		},
+		{
+			name: "ValidClientCertificateAuth",
+			authArgs: authArgs{
+				rawSubscriptionID:   validID,
+				rawClientID:         validID,
+				CertificatePath:     "/a/path",
+				PrivateKeyPath:      "/a/path",
+				AuthMethod:          "client_certificate",
+				RawAzureEnvironment: "AZUREPUBLICCLOUD",
+			},
+			expected: nil,
+		},
+	} {
+		test := tc
+		t.Run(test.name, func(t *testing.T) {
+			err := test.authArgs.validateAuthArgs()
+			if test.expected != nil {
+				g.Expect(err.Error()).To(Equal(test.expected.Error()))
+			} else {
+				g.Expect(err).To(BeNil())
 			}
 		})
 	}
@@ -375,7 +496,7 @@ func getMuxForIdentitySystem(authArgs *authArgs) *http.ServeMux {
 	return mux
 }
 
-func prepareCustomCloudProfile() *api.ContainerService {
+func prepareCustomCloudProfile() (*api.ContainerService, error) {
 	const (
 		name                         = "azurestackcloud"
 		managementPortalURL          = "https://management.local.azurestack.external/"
@@ -449,11 +570,14 @@ func prepareCustomCloudProfile() *api.ContainerService {
 		},
 	}
 
-	cs.SetPropertiesDefaults(api.PropertiesDefaultsParams{
+	_, err := cs.SetPropertiesDefaults(api.PropertiesDefaultsParams{
 		IsScale:    false,
 		IsUpgrade:  false,
 		PkiKeySize: helpers.DefaultPkiKeySize,
 	})
+	if err != nil {
+		return nil, err
+	}
 
-	return cs
+	return cs, nil
 }

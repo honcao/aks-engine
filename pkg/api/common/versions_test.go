@@ -150,6 +150,12 @@ func TestIsKubernetesVersionGe(t *testing.T) {
 			actualVersion:  "1.15.1",
 			expectedResult: false,
 		},
+		{
+			name:           "is 1.19.0 >= 1.19.0-alpha.2?",
+			version:        "1.19.0",
+			actualVersion:  "1.19.0-alpha.2",
+			expectedResult: false,
+		},
 	}
 	for _, c := range cases {
 		c := c
@@ -620,7 +626,7 @@ func Test_IsValidMinVersion(t *testing.T) {
 	})
 
 	t.Run("Kubernetes version is higher than required version", func(t *testing.T) {
-		orchestratorVersion = "1.15.9"
+		orchestratorVersion = "1.15.11"
 		minVersion := "1.13.0"
 		isValidVersion, _ := IsValidMinVersion(Kubernetes, "", orchestratorVersion, minVersion)
 		if !isValidVersion {

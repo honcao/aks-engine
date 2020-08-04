@@ -2,17 +2,16 @@
 
 |Feature|Status|API Version|Example|Description|
 |---|---|---|---|---|
-|Managed Disks|Beta|`vlabs`|[kubernetes-vmas.json](../../examples/disks-managed/kubernetes-vmas.json)|[Description](#feat-managed-disks)|
+|Antrea Network Policy|Alpha|`vlabs`|[kubernetes-antrea.json](../../examples/networkpolicy/kubernetes-antrea.json)|[Description](#feat-antrea)|
+|Azure Key Vault Encryption|Alpha|`vlabs`|[kubernetes-keyvault-encryption.json](../../examples/kubernetes-config/kubernetes-keyvault-encryption.json)|[Description](#feat-keyvault-encryption)|
 |Calico Network Policy|Alpha|`vlabs`|[kubernetes-calico.json](../../examples/networkpolicy/kubernetes-calico-azure.json)|[Description](#feat-calico)|
 |Cilium Network Policy|Alpha|`vlabs`|[kubernetes-cilium.json](../../examples/networkpolicy/kubernetes-cilium.json)|[Description](#feat-cilium)|
-|Antrea Network Policy|Alpha|`vlabs`|[kubernetes-antrea.json](../../examples/networkpolicy/kubernetes-antrea.json)|[Description](#feat-antrea)|
+|ContainerD Runtime for Windows|Experimental|`vlabs`|[kubernetes-hybrid.containerd.json](../../examples/windows/kubernetes-hybrid.containerd.json)|[Description](#windows-containerd)|
 |Custom VNET|Beta|`vlabs`|[kubernetesvnet-azure-cni.json](../../examples/vnet/kubernetesvnet-azure-cni.json)|[Description](#feat-custom-vnet)|
-|Kata Containers Runtime|Alpha|`vlabs`|[kubernetes-kata-containers.json](../../examples/kubernetes-kata-containers.json)|[Description](#feat-kata-containers)|
-|Private Cluster|Alpha|`vlabs`|[kubernetes-private-cluster.json](../../examples/kubernetes-config/kubernetes-private-cluster.json)|[Description](#feat-private-cluster)|
-|Azure Key Vault Encryption|Alpha|`vlabs`|[kubernetes-keyvault-encryption.json](../../examples/kubernetes-config/kubernetes-keyvault-encryption.json)|[Description](#feat-keyvault-encryption)|
-|Shared Image Gallery images|Alpha|`vlabs`|[custom-shared-image.json](../../examples/custom-shared-image.json)|[Description](#feat-shared-image-gallery)|
 |Ephemeral OS Disks|Experimental|`vlabs`|[ephmeral-disk.json](../../examples/disks-ephemeral/ephemeral-disks.json)|[Description](#ephemeral-os-disks)|
-
+|Managed Disks|Beta|`vlabs`|[kubernetes-vmas.json](../../examples/disks-managed/kubernetes-vmas.json)|[Description](#feat-managed-disks)|
+|Private Cluster|Alpha|`vlabs`|[kubernetes-private-cluster.json](../../examples/kubernetes-config/kubernetes-private-cluster.json)|[Description](#feat-private-cluster)|
+|Shared Image Gallery images|Alpha|`vlabs`|[custom-shared-image.json](../../examples/custom-shared-image.json)|[Description](#feat-shared-image-gallery)|
 
 <a name="feat-kubernetes-msi"></a>
 
@@ -34,7 +33,7 @@ Enable Managed Identity by adding `useManagedIdentity` in `kubernetesConfig`.
 
 ## Optional: Disable Kubernetes Role-Based Access Control (RBAC) (for clusters running Kubernetes versions before 1.15.0)
 
-By default, the cluster will be provisioned with [Role-Based Access Control](https://kubernetes.io/docs/admin/authorization/rbac/) enabled. Disable RBAC by adding `enableRbac` in `kubernetesConfig` in the api model:
+By default, the cluster will be provisioned with [Role-Based Access Control](https://kubernetes.io/docs/admin/authorization/rbac/) enabled. Disable RBAC by adding `enableRbac` in `kubernetesConfig` in the API model:
 
 ```json
 "kubernetesConfig": {
@@ -79,11 +78,6 @@ storagetier=<Standard_LRS|Premium_LRS>
 
 They are managed-premium and managed-standard and map to Standard_LRS and Premium_LRS managed disk types respectively.
 
-In order to use these storage classes the following conditions must be met.
-
-- The cluster must be running Kubernetes release 1.7 or greater. Refer to this [example](../../examples/kubernetes-releases/kubernetes1.7.json) for how to provision a Kubernetes cluster of a specific version.
-- The node must support managed disks. See this [example](../../examples/disks-managed/kubernetes-vmas.json) to provision nodes with managed disks. You can also confirm if a node has managed disks using kubectl.
-
 ```console
 kubectl get nodes -l storageprofile=managed
 NAME                    STATUS    AGE       VERSION
@@ -111,7 +105,7 @@ spec:
 
 ## Using Azure integrated networking (CNI)
 
-Kubernetes clusters are configured by default to use the [Azure CNI plugin](https://github.com/Azure/azure-container-networking) which provides an Azure native networking experience. Pods will receive IP addresses directly from the vnet subnet on which they're hosted. If the api model doesn't specify explicitly, aks-engine will automatically provide the following `networkPlugin` configuration in `kubernetesConfig`:
+Kubernetes clusters are configured by default to use the [Azure CNI plugin](https://github.com/Azure/azure-container-networking) which provides an Azure native networking experience. Pods will receive IP addresses directly from the vnet subnet on which they're hosted. If the API model doesn't specify explicitly, aks-engine will automatically provide the following `networkPlugin` configuration in `kubernetesConfig`:
 
 ```json
 "kubernetesConfig": {
@@ -271,7 +265,7 @@ Depending upon the size of the VNET address space, during deployment, it is poss
 First, the detail:
 
 - Azure CNI assigns dynamic IP addresses from the "beginning" of the subnet IP address space (specifically, it looks for available addresses starting at ".4" ["10.0.0.4" in a "10.0.0.0/24" network])
-- aks-engine will require a range of up to 16 unused IP addresses in multi-master scenarios (1 per master for up to 5 masters, and then the next 10 IP addresses immediately following the "last" master for headroom reservation, and finally 1 more for the load balancer immediately adjacent to the afore-described _n_ masters+10 sequence) to successfully scaffold the network stack for your cluster
+- AKS Engine will require a range of up to 16 unused IP addresses in multi-master scenarios (1 per master for up to 5 masters, and then the next 10 IP addresses immediately following the "last" master for headroom reservation, and finally 1 more for the load balancer immediately adjacent to the afore-described _n_ masters+10 sequence) to successfully scaffold the network stack for your cluster
 
 A guideline that will remove the danger of IP address allocation collision during deployment:
 
@@ -303,7 +297,7 @@ Before provisioning, modify the `masterProfile` and `agentPoolProfiles` to match
 ### VirtualMachineScaleSets Masters Custom VNET
 
 When using custom VNET with `VirtualMachineScaleSets` MasterProfile, make sure to create two subnets within the vnet: `master` and `agent`.
-Modify `masterProfile` in the api model, `vnetSubnetId`, `agentVnetSubnetId` should be set to the values of the `master` subnet and the `agent` subnet in the existing vnet respectively.
+Modify `masterProfile` in the API model, `vnetSubnetId`, `agentVnetSubnetId` should be set to the values of the `master` subnet and the `agent` subnet in the existing vnet respectively.
 Modify `agentPoolProfiles`, `vnetSubnetId` should be set to the value of the `agent` subnet in the existing vnet.
 
 *NOTE: The `firstConsecutiveStaticIP` configuration should be empty and will be derived from an offset and the first IP in the vnetCidr.*
@@ -329,7 +323,7 @@ For example, if `vnetCidr` is `10.239.0.0/16`, `master` subnet is `10.239.0.0/17
 
 ### Kubenet Networking Custom VNET
 
-If you're *not- using Azure CNI (e.g., `"networkPlugin": "kubenet"` in the `kubernetesConfig` api model configuration object): After a custom VNET-configured cluster finishes provisioning, fetch the id of the Route Table resource from `Microsoft.Network` provider in your new cluster's Resource Group.
+If you're *not- using Azure CNI (e.g., `"networkPlugin": "kubenet"` in the `kubernetesConfig` API model configuration object): After a custom VNET-configured cluster finishes provisioning, fetch the id of the Route Table resource from `Microsoft.Network` provider in your new cluster's Resource Group.
 
 The route table resource id is of the format: `/subscriptions/SUBSCRIPTIONID/resourceGroups/RESOURCEGROUPNAME/providers/Microsoft.Network/routeTables/ROUTETABLENAME`
 
@@ -361,37 +355,6 @@ E.g.:
       ...
     }
 ]
-```
-
-<a name="feat-kata-containers"></a>
-
-## Kata Containers
-
-You can designate kubernetes agents to use Kata Containers as the
-container runtime by setting:
-
-```json
-"kubernetesConfig": {
-  "containerRuntime": "kata-containers"
-}
-```
-
-You will need to make sure your agents are using a `vmSize` that [supports
-nested virtualization](https://azure.microsoft.com/en-us/blog/nested-virtualization-in-azure/).
-These are the `Dv3` or `Ev3` series nodes.
-
-This should look like:
-
-```json
-"agentPoolProfiles": [
-      {
-        "name": "agentpool1",
-        "count": 3,
-        "vmSize": "Standard_D4s_v3",
-        "availabilityProfile": "AvailabilitySet",
-        "diskSizesGB": [1023]
-      }
-],
 ```
 
 <a name="feat-private-cluster"></a>
@@ -466,7 +429,7 @@ az ad sp list --spn <YOUR SERVICE PRINCIPAL appId>
 
 ## Use a Shared Image Gallery image
 
-This is possible by specifying `imageReference` under `masterProfile` or on a given `agentPoolProfile`. It also requires setting the distro to an appropriate value (`ubuntu` or `coreos`). When using `imageReference` with Shared Image Galleries, provide an image name and version, as well as the resource group, subscription, and name of the gallery. Example:
+This is possible by specifying `imageReference` under `masterProfile` or on a given `agentPoolProfile`. It also requires setting the distro to an appropriate value (e.g., `ubuntu`). When using `imageReference` with Shared Image Galleries, provide an image name and version, as well as the resource group, subscription, and name of the gallery. Example:
 
 ```json
 {
@@ -543,3 +506,34 @@ We are investigating possible risks & mitigations for when VMs are deprovisioned
 
 
 [Ephemeral OS Disks]: https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks
+
+
+## Windows ContainerD
+
+> This feature is currently experimental, and has open issues.
+
+Kubernetes 1.18 introduces alpha support for the ContainerD runtime on Windows Server 2019. This is still a work-in-progress tracked in [kubernetes/enhancements#1001](https://github.com/kubernetes/enhancements/issues/1001). This feature in AKS-Engine is for testing the in-development versions of ContainerD and Kubernetes, and is not for production use. Be sure to review [open issues](https://github.com/azure/aks-engine/issues?q=containerd+label%3Awindows+is%3Aopen) if you want to test or contribute to this effort.
+
+Currently it only supports the `kubenet` networking model, and requires URLs to custom ContainerD and CNI plugin builds.
+
+### Deploying multi-OS clusters with ContainerD
+
+If you want to test or develop with Windows & ContainerD in AKS-Engine, see this sample
+[kubernetes-hybrid.containerd.json](../../examples/windows/kubernetes-hybrid.containerd.json)
+
+These parameters are all required.
+
+```json
+      "kubernetesConfig": {
+        "networkPlugin": "kubenet",
+        "containerRuntime": "containerd",
+        "windowsContainerdURL": "...",
+        "windowsSdnPluginURL": "..."
+      }
+```
+
+### Building ContainerD
+
+As of March 3, 2020, the ContainerD and network plugin repos don't have public builds available. This repo has a script that will build them from source and create two ZIP files: [build-windows-containerd.sh](../../scripts/build-windows-containerd.sh)
+
+Upload these ZIP files to a location that your cluster will be able to reach, then put those URLs in `windowsContainerdURL` and `windowsSdnPluginURL` in the AKS-Engine API model shown above.

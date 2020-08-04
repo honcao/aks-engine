@@ -20,7 +20,7 @@ function Write-Log ($message) {
     $message | Timestamp | Tee-Object -FilePath $global:LogPath -Append
 }
 
-Write-Log "Entering windowsnodecleanup.ps1"
+Write-Log "Entering windowsnodereset.ps1"
 
 Import-Module $global:HNSModule
 
@@ -34,8 +34,8 @@ Write-Log "Stopping kubelet service"
 Stop-Service kubelet
 
 if ($global:CsiProxyEnabled) {
-    Write-Log "Stopping csi-proxy-server service"
-    Stop-Service csi-proxy-server
+    Write-Log "Stopping csi-proxy service"
+    Stop-Service csi-proxy
 }
 
 #
@@ -92,8 +92,8 @@ if ($global:NetworkPlugin -eq 'kubenet') {
 #
 
 if ($global:CsiProxyEnabled) {
-    Write-Log "Starting csi-proxy-server service"
-    Start-Service csi-proxy-server
+    Write-Log "Starting csi-proxy service"
+    Start-Service csi-proxy
 }
 
 Write-Log "Starting kubelet service"
@@ -102,4 +102,4 @@ Start-Service kubelet
 Write-Log "Starting kubeproxy service"
 Start-Service kubeproxy
 
-Write-Log "Exiting windowsnodecleanup.ps1"
+Write-Log "Exiting windowsnodereset.ps1"

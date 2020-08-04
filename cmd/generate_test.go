@@ -159,9 +159,15 @@ func TestGenerateCmdMLoadAPIModel(t *testing.T) {
 	g.apimodelPath = "../pkg/engine/testdata/simple/kubernetes.json"
 	g.set = []string{"agentPoolProfiles[0].count=1"}
 
-	g.validate(r, []string{"../pkg/engine/testdata/simple/kubernetes.json"})
-	g.mergeAPIModel()
-	err := g.loadAPIModel()
+	err := g.validate(r, []string{"../pkg/engine/testdata/simple/kubernetes.json"})
+	if err != nil {
+		t.Fatalf("unexpected error validating api model: %s", err.Error())
+	}
+	err = g.mergeAPIModel()
+	if err != nil {
+		t.Fatalf("unexpected error merging api model: %s", err.Error())
+	}
+	err = g.loadAPIModel()
 	if err != nil {
 		t.Fatalf("unexpected error loading api model: %s", err.Error())
 	}
@@ -361,16 +367,6 @@ func TestExampleAPIModels(t *testing.T) {
 			setArgs:      defaultSet,
 		},
 		{
-			name:         "coreos",
-			apiModelPath: "../examples/coreos/kubernetes-coreos.json",
-			setArgs:      defaultSet,
-		},
-		{
-			name:         "coreos hybrid",
-			apiModelPath: "../examples/coreos/kubernetes-coreos-hybrid.json",
-			setArgs:      defaultSet,
-		},
-		{
 			name:         "cosmos etcd",
 			apiModelPath: "../examples/cosmos-etcd/kubernetes-3-masters-cosmos.json",
 			setArgs:      defaultSet,
@@ -551,16 +547,6 @@ func TestExampleAPIModels(t *testing.T) {
 			setArgs:      defaultSet,
 		},
 		{
-			name:         "1.13 example",
-			apiModelPath: "../examples/kubernetes-releases/kubernetes1.13.json",
-			setArgs:      defaultSet,
-		},
-		{
-			name:         "1.14 example",
-			apiModelPath: "../examples/kubernetes-releases/kubernetes1.14.json",
-			setArgs:      defaultSet,
-		},
-		{
 			name:         "1.15 example",
 			apiModelPath: "../examples/kubernetes-releases/kubernetes1.15.json",
 			setArgs:      defaultSet,
@@ -578,6 +564,11 @@ func TestExampleAPIModels(t *testing.T) {
 		{
 			name:         "1.18 example",
 			apiModelPath: "../examples/kubernetes-releases/kubernetes1.18.json",
+			setArgs:      defaultSet,
+		},
+		{
+			name:         "1.19 example",
+			apiModelPath: "../examples/kubernetes-releases/kubernetes1.19.json",
 			setArgs:      defaultSet,
 		},
 		{
@@ -786,18 +777,18 @@ func TestExampleAPIModels(t *testing.T) {
 			setArgs:      defaultSet,
 		},
 		{
-			name:         "kata-containers",
-			apiModelPath: "../examples/kubernetes-kata-containers.json",
-			setArgs:      defaultSet,
-		},
-		{
 			name:         "ubuntu distros",
 			apiModelPath: "../examples/kubernetes-non-vhd-distros.json",
 			setArgs:      defaultSet,
 		},
 		{
-			name:         "e2e coreos",
-			apiModelPath: "../examples/e2e-tests/kubernetes/coreos/coreos.json",
+			name:         "docker tmp dir",
+			apiModelPath: "../examples/kubernetes-config/kubernetes-docker-tmpdir.json",
+			setArgs:      defaultSet,
+		},
+		{
+			name:         "containerd tmp dir",
+			apiModelPath: "../examples/kubernetes-config/kubernetes-containerd-tmpdir.json",
 			setArgs:      defaultSet,
 		},
 		{
@@ -818,11 +809,6 @@ func TestExampleAPIModels(t *testing.T) {
 		{
 			name:         "e2e kubenet",
 			apiModelPath: "../examples/e2e-tests/kubernetes/kubernetes-config/network-plugin-kubenet.json",
-			setArgs:      defaultSet,
-		},
-		{
-			name:         "e2e rbac disabled",
-			apiModelPath: "../examples/e2e-tests/kubernetes/kubernetes-config/rbac-disabled.json",
 			setArgs:      defaultSet,
 		},
 		{
@@ -881,15 +867,17 @@ func TestExampleAPIModels(t *testing.T) {
 			g.set = test.setArgs
 			r := &cobra.Command{}
 
-			g.validate(r, []string{})
-			g.mergeAPIModel()
-			err := g.loadAPIModel()
-			if err != nil {
+			if err := g.validate(r, []string{}); err != nil {
+				t.Fatalf("unexpected error validating api model: %s", err.Error())
+			}
+			if err := g.mergeAPIModel(); err != nil {
+				t.Fatalf("unexpected error merging api model: %s", err.Error())
+			}
+			if err := g.loadAPIModel(); err != nil {
 				t.Fatalf("unexpected error loading api model: %s", err.Error())
 			}
 
-			err = g.validateAPIModelAsVLabs()
-			if err != nil {
+			if err := g.validateAPIModelAsVLabs(); err != nil {
 				t.Fatalf("unexpected error validateAPIModelAsVLabs the example apimodel: %s", err)
 			}
 		})

@@ -2,7 +2,7 @@
 
 ## Background
 
-Starting from AKS Engine v0.3.0, AKS Engine supports using exponential cloud backoff that is a feature of Kubernetes v1.6.6 and newer. Cloud backoff allows Kubernetes nodes to backoff on HTTP 429 errors that are usually caused by exceeding Azure API limits.
+AKS Engine supports using exponential cloud backoff that is a feature of Kubernetes v1.6.6 and newer. Cloud backoff allows Kubernetes nodes to backoff on HTTP 429 errors that are usually caused by exceeding Azure API limits.
 
 ## To Use
 
@@ -12,7 +12,7 @@ Declare your kubernetes cluster API model config as you normally would, with the
 
 ## Backoff configuration options
 
-The following configuration parameters are available in the `properties.orchestratorProfile.kubernetesConfig` configuration object in the api model specification:
+The following configuration parameters are available in the `properties.orchestratorProfile.kubernetesConfig` configuration object in the API model specification:
 
 ```json
     "cloudProviderBackoff": {
@@ -31,7 +31,7 @@ The following configuration parameters are available in the `properties.orchestr
       "value": "6" // maximum retry attempts before failure
     },
     "cloudProviderRatelimit": {
-      "value": "false" // if true, enforce rate limits for azure API calls
+      "value": "true" // if true, enforce rate limits for azure API calls
     },
     "cloudProviderRatelimitBucket": {
       "value": "10" // number of requests in queue
@@ -48,4 +48,4 @@ The following configuration parameters are available in the `properties.orchestr
       "--route-reconciliation-period": "1m" // how often to reconcile cloudprovider-originating node routes
     }
 ```
-The [examples/largeclusters/kubernetes.json](https://github.com/Azure/aks-engine/blob/master/examples/largeclusters/kubernetes.json) api model example suggests how you might opt into these large cluster features following the guidelines above.
+The [examples/largeclusters/kubernetes.json](https://github.com/Azure/aks-engine/blob/master/examples/largeclusters/kubernetes.json) API model example suggests how you might opt into these large cluster features following the guidelines above.

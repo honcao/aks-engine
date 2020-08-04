@@ -141,6 +141,10 @@ func TestAgentPoolProfile(t *testing.T) {
 		t.Fatalf("unexpectedly detected AgentPoolProfile.DiskEncryptionSetID is not empty after unmarshal")
 	}
 
+	if to.Bool(ap.UltraSSDEnabled) {
+		t.Fatalf("AgentPoolProfile.UltraSSDEnabled should be false by default")
+	}
+
 	if to.Bool(ap.EncryptionAtHost) {
 		t.Fatalf("AgentPoolProfile.EncryptionAtHost should be false by default")
 	}
@@ -167,7 +171,7 @@ func TestAgentPoolProfile(t *testing.T) {
 
 	// With osType Windows and Ephemeral disks
 	AgentPoolProfileText = `{ "name": "linuxpool1", "osType" : "Windows", "count": 1, "vmSize": "Standard_D2_v2",
-"availabilityProfile": "AvailabilitySet", "storageProfile" : "Ephemeral", "vnetSubnetID" : "12345", "diskEncryptionSetID": "diskEncryptionSetID", "encryptionAtHost": true }`
+"availabilityProfile": "AvailabilitySet", "storageProfile" : "Ephemeral", "vnetSubnetID" : "12345", "diskEncryptionSetID": "diskEncryptionSetID", "ultraSSDEnabled": true, "encryptionAtHost": true }`
 	ap = &AgentPoolProfile{}
 	if e := json.Unmarshal([]byte(AgentPoolProfileText), ap); e != nil {
 		t.Fatalf("unexpectedly detected unmarshal failure for AgentPoolProfile, %+v", e)
@@ -191,6 +195,10 @@ func TestAgentPoolProfile(t *testing.T) {
 
 	if ap.DiskEncryptionSetID == "" {
 		t.Fatalf("unexpectedly detected AgentPoolProfile.DiskEncryptionSetID is empty after unmarshal")
+	}
+
+	if !to.Bool(ap.UltraSSDEnabled) {
+		t.Fatalf("AgentPoolProfile.UltraSSDEnabled should be true after unmarshal")
 	}
 
 	if !to.Bool(ap.EncryptionAtHost) {
@@ -230,7 +238,7 @@ func TestAgentPoolProfile(t *testing.T) {
 
 	// With VMSS and Spot VMs
 	AgentPoolProfileText = `{"name":"linuxpool1","osType":"Linux","distro":"rhel","count":1,"vmSize":"Standard_D2_v2",
-"availabilityProfile":"VirtualMachineScaleSets","scaleSetPriority":"Spot","ScaleSetEvictionPolicy":"Delete","SpotMaxPrice":88, "encryptionAtHost": true}`
+"availabilityProfile":"VirtualMachineScaleSets","scaleSetPriority":"Spot","ScaleSetEvictionPolicy":"Delete","SpotMaxPrice":88, "ultraSSDEnabled": true, "encryptionAtHost": true}`
 	ap = &AgentPoolProfile{}
 	if e := json.Unmarshal([]byte(AgentPoolProfileText), ap); e != nil {
 		t.Fatalf("unexpectedly detected unmarshal failure for AgentPoolProfile, %+v", e)
@@ -246,6 +254,10 @@ func TestAgentPoolProfile(t *testing.T) {
 
 	if *ap.SpotMaxPrice != float64(88) {
 		t.Fatalf("unexpectedly detected *AgentPoolProfile.SpotMaxPrice != float64(88) after unmarshal")
+	}
+
+	if !to.Bool(ap.UltraSSDEnabled) {
+		t.Fatalf("AgentPoolProfile.UltraSSDEnabled should be true after unmarshal")
 	}
 
 	if !to.Bool(ap.EncryptionAtHost) {
@@ -265,10 +277,6 @@ func TestAgentPoolProfile(t *testing.T) {
 
 	if !ap.IsLinux() {
 		t.Fatalf("unexpectedly detected AgentPoolProfile.OSType != Linux after unmarshal")
-	}
-
-	if !ap.IsCoreOS() {
-		t.Fatalf("unexpectedly detected AgentPoolProfile.Distro != CoreOS after unmarshal")
 	}
 
 	if !ap.IsManagedDisks() {
@@ -361,7 +369,7 @@ func TestAgentPoolIsNSeriesSKU(t *testing.T) {
 	}
 }
 
-func TestIsAzureStackCloud(t *testing.T) {
+func TestIsCustomCloudProfile(t *testing.T) {
 	testcases := []struct {
 		name       string
 		properties Properties
@@ -399,6 +407,56 @@ func TestIsAzureStackCloud(t *testing.T) {
 		},
 		{
 			"empty environment ",
+			GetMockPropertiesWithCustomCloudProfile("AzureStackCloud", true, false, true),
+			true,
+		},
+	}
+	for _, testcase := range testcases {
+		actual := testcase.properties.IsCustomCloudProfile()
+		if testcase.expected != actual {
+			t.Errorf("Test \"%s\": expected IsCustomCloudProfile() to return %t, but got %t . ", testcase.name, testcase.expected, actual)
+		}
+	}
+}
+
+func TestIsAzureStackCloud(t *testing.T) {
+	testcases := []struct {
+		name       string
+		properties Properties
+		expected   bool
+	}{
+		{
+			"Empty environment name should be treated as AzureStackCloud",
+			GetMockPropertiesWithCustomCloudProfile("", true, true, false),
+			true,
+		},
+		{
+			"Empty environment name (with AzureEnvironmentSpecConfig) should be treated as AzureStackCloud",
+			GetMockPropertiesWithCustomCloudProfile("", true, true, true),
+			true,
+		},
+		{
+			"lower case AzureStackCloud name",
+			GetMockPropertiesWithCustomCloudProfile("azurestackcloud", true, true, true),
+			true,
+		},
+		{
+			"cammel case AzureStackCloud name",
+			GetMockPropertiesWithCustomCloudProfile("AzureStackCloud", true, true, true),
+			true,
+		},
+		{
+			"incorrect AzureStackCloud name",
+			GetMockPropertiesWithCustomCloudProfile("NotAzureStackCloud", true, true, true),
+			false,
+		},
+		{
+			"empty cloud profile",
+			GetMockPropertiesWithCustomCloudProfile("AzureStackCloud", false, false, false),
+			false,
+		},
+		{
+			"empty environment should be treated as AzureStackCloud",
 			GetMockPropertiesWithCustomCloudProfile("AzureStackCloud", true, false, true),
 			true,
 		},
@@ -556,15 +614,6 @@ func TestMasterIsUbuntu(t *testing.T) {
 			p: Properties{
 				MasterProfile: &MasterProfile{
 					Count:  1,
-					Distro: CoreOS,
-				},
-			},
-			expected: false,
-		},
-		{
-			p: Properties{
-				MasterProfile: &MasterProfile{
-					Count:  1,
 					Distro: RHEL,
 				},
 			},
@@ -658,17 +707,6 @@ func TestAgentPoolIsUbuntu(t *testing.T) {
 				},
 			},
 			expected: true,
-		},
-		{
-			p: Properties{
-				AgentPoolProfiles: []*AgentPoolProfile{
-					{
-						Count:  1,
-						Distro: CoreOS,
-					},
-				},
-			},
-			expected: false,
 		},
 		{
 			p: Properties{
@@ -808,6 +846,176 @@ func TestAADAdminGroupIDMethods(t *testing.T) {
 			getAADAdminGroupID := test.properties.GetAADAdminGroupID()
 			if getAADAdminGroupID != test.expectedGetAADAdminGroupID {
 				t.Errorf("expected HasAADAdminGroupID %s, but got %s", test.expectedGetAADAdminGroupID, getAADAdminGroupID)
+			}
+		})
+	}
+}
+
+func TestShouldEnableAzureCloudAddon(t *testing.T) {
+	cases := []struct {
+		name      string
+		addonName string
+		p         *Properties
+		expected  bool
+	}{
+		{
+			name: "useCloudControllerManager disabled",
+			p: &Properties{
+				OrchestratorProfile: &OrchestratorProfile{
+					OrchestratorVersion: "1.18.0",
+					KubernetesConfig: &KubernetesConfig{
+						UseCloudControllerManager: to.BoolPtr(false),
+					},
+				},
+			},
+			expected: false,
+		},
+		{
+			name:      "unknown addon",
+			addonName: "unknown addon",
+			p: &Properties{
+				OrchestratorProfile: &OrchestratorProfile{
+					OrchestratorVersion: "1.16.0",
+					KubernetesConfig: &KubernetesConfig{
+						UseCloudControllerManager: to.BoolPtr(true),
+					},
+				},
+			},
+			expected: false,
+		},
+		{
+			name:      "[Linux] azuredisk-csi-driver with K8s 1.13",
+			addonName: common.AzureDiskCSIDriverAddonName,
+			p: &Properties{
+				OrchestratorProfile: &OrchestratorProfile{
+					OrchestratorVersion: "1.13.0",
+					KubernetesConfig: &KubernetesConfig{
+						UseCloudControllerManager: to.BoolPtr(true),
+					},
+				},
+			},
+			expected: true,
+		},
+		{
+			name:      "[Linux] azurefile-csi-driver with K8s 1.13",
+			addonName: common.AzureFileCSIDriverAddonName,
+			p: &Properties{
+				OrchestratorProfile: &OrchestratorProfile{
+					OrchestratorVersion: "1.13.0",
+					KubernetesConfig: &KubernetesConfig{
+						UseCloudControllerManager: to.BoolPtr(true),
+					},
+				},
+			},
+			expected: true,
+		},
+		{
+			name:      "[Linux] cloud-node-manager with K8s 1.15",
+			addonName: common.CloudNodeManagerAddonName,
+			p: &Properties{
+				OrchestratorProfile: &OrchestratorProfile{
+					OrchestratorVersion: "1.15.0",
+					KubernetesConfig: &KubernetesConfig{
+						UseCloudControllerManager: to.BoolPtr(true),
+					},
+				},
+			},
+			expected: false,
+		},
+		{
+			name:      "[Linux] cloud-node-manager with K8s 1.16",
+			addonName: common.CloudNodeManagerAddonName,
+			p: &Properties{
+				OrchestratorProfile: &OrchestratorProfile{
+					OrchestratorVersion: "1.16.0",
+					KubernetesConfig: &KubernetesConfig{
+						UseCloudControllerManager: to.BoolPtr(true),
+					},
+				},
+			},
+			expected: true,
+		},
+		{
+			name:      "[Windows] azuredisk-csi-driver with K8s 1.18",
+			addonName: common.AzureDiskCSIDriverAddonName,
+			p: &Properties{
+				OrchestratorProfile: &OrchestratorProfile{
+					OrchestratorVersion: "1.18.0",
+					KubernetesConfig: &KubernetesConfig{
+						UseCloudControllerManager: to.BoolPtr(true),
+					},
+				},
+				AgentPoolProfiles: []*AgentPoolProfile{
+					{
+						OSType: Windows,
+					},
+				},
+			},
+			expected: true,
+		},
+		{
+			name:      "[Windows] azurefile-csi-driver with K8s 1.18",
+			addonName: common.AzureFileCSIDriverAddonName,
+			p: &Properties{
+				OrchestratorProfile: &OrchestratorProfile{
+					OrchestratorVersion: "1.18.0",
+					KubernetesConfig: &KubernetesConfig{
+						UseCloudControllerManager: to.BoolPtr(true),
+					},
+				},
+				AgentPoolProfiles: []*AgentPoolProfile{
+					{
+						OSType: Windows,
+					},
+				},
+			},
+			expected: true,
+		},
+		{
+			name:      "[Windows] cloud-node-manager with K8s 1.18",
+			addonName: common.CloudNodeManagerAddonName,
+			p: &Properties{
+				OrchestratorProfile: &OrchestratorProfile{
+					OrchestratorVersion: "1.18.0",
+					KubernetesConfig: &KubernetesConfig{
+						UseCloudControllerManager: to.BoolPtr(true),
+					},
+				},
+				AgentPoolProfiles: []*AgentPoolProfile{
+					{
+						OSType: Windows,
+					},
+				},
+			},
+			expected: true,
+		},
+		{
+			name:      "[Windows] cloud-node-manager with K8s 1.17",
+			addonName: common.CloudNodeManagerAddonName,
+			p: &Properties{
+				OrchestratorProfile: &OrchestratorProfile{
+					OrchestratorVersion: "1.17.0",
+					KubernetesConfig: &KubernetesConfig{
+						UseCloudControllerManager: to.BoolPtr(true),
+					},
+				},
+				AgentPoolProfiles: []*AgentPoolProfile{
+					{
+						OSType: Windows,
+					},
+				},
+			},
+			expected: false,
+		},
+	}
+
+	for _, c := range cases {
+		c := c
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+			actual := c.p.ShouldEnableAzureCloudAddon(c.addonName)
+			if actual != c.expected {
+				t.Fatalf("expected p.ShouldEnableAzureCloudAddon(\"%s\") to return %t but instead returned %t", c.addonName, c.expected, actual)
 			}
 		})
 	}

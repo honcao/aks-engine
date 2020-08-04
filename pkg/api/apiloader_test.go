@@ -26,7 +26,9 @@ func TestLoadContainerServiceFromFile(t *testing.T) {
 		Properties: &Properties{OrchestratorProfile: &OrchestratorProfile{OrchestratorType: Kubernetes, OrchestratorVersion: "1.7.16"}}}
 
 	locale := gotext.NewLocale(path.Join("..", "..", "translations"), "en_US")
-	i18n.Initialize(locale)
+	if err := i18n.Initialize(locale); err != nil {
+		t.Error(err)
+	}
 	apiloader := &Apiloader{
 		Translator: &i18n.Translator{
 			Locale: locale,
@@ -48,7 +50,9 @@ func TestLoadContainerServiceFromFile(t *testing.T) {
 func TestLoadContainerServiceForAgentPoolOnlyCluster(t *testing.T) {
 	var _ = Describe("create/update cluster operations", func() {
 		locale := gotext.NewLocale(path.Join("../../..", "../../..", "translations"), "en_US")
-		i18n.Initialize(locale)
+		if err := i18n.Initialize(locale); err != nil {
+			t.Error(err)
+		}
 		apiloader := &Apiloader{
 			Translator: &i18n.Translator{
 				Locale: locale,
@@ -173,10 +177,16 @@ func TestLoadContainerServiceWithNilProperties(t *testing.T) {
         }`
 
 	tmpFile, err := ioutil.TempFile("", "containerService-invalid")
+	if err != nil {
+		t.Error(err)
+	}
 	fileName := tmpFile.Name()
 	defer os.Remove(fileName)
 
 	err = ioutil.WriteFile(fileName, []byte(jsonWithoutProperties), os.ModeAppend)
+	if err != nil {
+		t.Error(err)
+	}
 
 	apiloader := &Apiloader{}
 	existingContainerService := &ContainerService{Name: "test",
@@ -197,7 +207,7 @@ func TestLoadContainerServiceWithEmptyLocationCustomCloud(t *testing.T) {
 		"properties": {
 			"orchestratorProfile": {
 				"orchestratorType": "Kubernetes",
-				"orchestratorRelease": "1.13",
+				"orchestratorRelease": "1.15",
 				"kubernetesConfig": {
 					"kubernetesImageBase": "msazurestackqa/",
 					"useInstanceMetadata": false,
@@ -261,10 +271,16 @@ func TestLoadContainerServiceWithEmptyLocationCustomCloud(t *testing.T) {
 	}`
 
 	tmpFile, err := ioutil.TempFile("", "containerService-nolocation")
+	if err != nil {
+		t.Error(err)
+	}
 	fileName := tmpFile.Name()
 	defer os.Remove(fileName)
 
 	err = ioutil.WriteFile(fileName, []byte(jsonWithoutlocationcustomcloud), os.ModeAppend)
+	if err != nil {
+		t.Error(err)
+	}
 
 	apiloader := &Apiloader{}
 	_, _, err = apiloader.LoadContainerServiceFromFile(fileName, true, false, nil)
@@ -281,7 +297,7 @@ func TestLoadContainerServiceWithEmptyLocationCustomCloud(t *testing.T) {
 		"properties": {
 			"orchestratorProfile": {
 				"orchestratorType": "Kubernetes",
-				"orchestratorRelease": "1.13",
+				"orchestratorRelease": "1.15",
 				"kubernetesConfig": {
 					"kubernetesImageBase": "msazurestackqa/",
 					"useInstanceMetadata": false,
@@ -324,10 +340,16 @@ func TestLoadContainerServiceWithEmptyLocationCustomCloud(t *testing.T) {
 	}`
 
 	tmpFilewithoutlocationpubliccloud, err := ioutil.TempFile("", "containerService-nolocationpubliccloud")
+	if err != nil {
+		t.Error(err)
+	}
 	fileNamewithoutlocationpubliccloud := tmpFilewithoutlocationpubliccloud.Name()
 	defer os.Remove(fileNamewithoutlocationpubliccloud)
 
 	err = ioutil.WriteFile(fileNamewithoutlocationpubliccloud, []byte(jsonWithoutlocationpubliccloud), os.ModeAppend)
+	if err != nil {
+		t.Error(err)
+	}
 
 	apiloaderwithoutlocationpubliccloud := &Apiloader{}
 	_, _, err = apiloaderwithoutlocationpubliccloud.LoadContainerServiceFromFile(fileNamewithoutlocationpubliccloud, true, false, nil)
@@ -430,7 +452,7 @@ func TestLoadContainerServiceForAgentPoolOnlyClusterWithRawJSON(t *testing.T) {
 		Translator: &i18n.Translator{},
 	}
 
-	cs, _, err := apiloader.LoadContainerServiceForAgentPoolOnlyCluster(rawJSON, v20170831.APIVersion, true, false, "1.13.11", nil)
+	cs, _, err := apiloader.LoadContainerServiceForAgentPoolOnlyCluster(rawJSON, v20170831.APIVersion, true, false, "1.15.11", nil)
 
 	if err != nil {
 		t.Errorf("unexpected error while executing LoadContainerServiceForAgentPoolOnlyCluster: %s", err.Error())
@@ -456,7 +478,7 @@ func TestLoadContainerServiceForAgentPoolOnlyClusterWithRawJSON(t *testing.T) {
 	rawJSON20180331 := []byte(`{"id":"sampleID","location":"westus2","plan":{"name":"sampleRPPlan","product":"fooProduct","promotionCode":"barPromoCode","publisher":"bazPublisher"},"tags":{"123":"456","abc":"def"},"type":"sampleType","properties":{"provisioningState":"Succeeded","kubernetesVersion":"","dnsPrefix":"blueorange","fqdn":"blueorange.azure.com","agentPoolProfiles":[{"name":"sampleagent","count":0,"vmSize":"Standard_DS1_v1","osDiskSizeGB":512,"storageProfile":"ManagedDisks","vnetSubnetID":"/subscriptions/SUB_ID/resourceGroups/RG_NAME/providers/Microsoft.Network/virtualNetworks/sampleVnet/subnets/sampleVnetSubnetID","osType":"Linux"}],"windowsProfile":{"adminUsername":"azureuser","adminPassword":"azurepassword"},"servicePrincipalProfile":{"clientId":"sampleClientID","secret":"sampleSecret"}}}`)
 
 	//Test with version v20180331
-	cs, _, err = apiloader.LoadContainerServiceForAgentPoolOnlyCluster(rawJSON20180331, v20180331.APIVersion, true, false, "1.13.11", nil)
+	cs, _, err = apiloader.LoadContainerServiceForAgentPoolOnlyCluster(rawJSON20180331, v20180331.APIVersion, true, false, "1.15.11", nil)
 
 	if err != nil {
 		t.Errorf("unexpected error while executing LoadContainerServiceForAgentPoolOnlyCluster: %s", err.Error())

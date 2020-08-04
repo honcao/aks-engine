@@ -1,7 +1,14 @@
 {
 	"env": {
 		"SCALE_CLUSTER": true,
-		"UPGRADE_CLUSTER": true
+		"UPGRADE_CLUSTER": true,
+		"GET_CLUSTER_LOGS": true,
+		"GINKGO_SKIP_AFTER_SCALE_DOWN": "should report all nodes in a Ready state",
+		"SKIP_TESTS": "false",
+		"SKIP_TESTS_AFTER_ADD_POOL": "true",
+		"SKIP_TESTS_AFTER_SCALE_DOWN": "true",
+		"SKIP_TESTS_AFTER_UPGRADE": "true",
+		"SKIP_TESTS_AFTER_SCALE_UP": "false"
 	},
 	"apiModel": {
 		"apiVersion": "vlabs",
@@ -16,9 +23,15 @@
 			},
 			"agentPoolProfiles": [
 				{
-					"name": "agentpool1",
+					"name": "poollinux",
 					"count": 1,
 					"vmSize": "Standard_D2_v3"
+				},
+				{
+					"name": "poolwin",
+					"count": 1,
+					"vmSize": "Standard_D2_v3",
+					"osType": "Windows"
 				}
 			],
 			"linuxProfile": {
@@ -31,6 +44,12 @@
 					]
 				}
 			},
+			"windowsProfile": {
+				"adminUsername": "azureuser",
+				"adminPassword": "replacepassword1234$",
+				"enableAutomaticUpdates": false,
+				"sshEnabled": true
+			},
 			"servicePrincipalProfile": {
 				"clientId": "",
 				"secret": ""
@@ -41,6 +60,13 @@
 		"name": "pooladded",
 		"count": 1,
 		"vmSize": "Standard_D2_v3",
-		"availabilityProfile": "VirtualMachineScaleSets"
+		"availabilityProfile": "VirtualMachineScaleSets",
+		"kubernetesConfig": {
+			"kubeletConfig": {
+				"--cloud-provider": "",
+				"--cloud-config": "",
+				"--azure-container-registry-config": ""
+			}
+		}
 	}
 }

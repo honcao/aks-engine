@@ -6,12 +6,13 @@ metadata:
   version: v1
   labels:
     component: kube-addon-manager
+    app: kube-addon-manager
 spec:
   priorityClassName: system-node-critical
   hostNetwork: true
   containers:
   - name: kube-addon-manager
-    image: {{GetComponentImageReference "addonmanager"}}
+    image: {{ContainerImage "kube-addon-manager"}}
     imagePullPolicy: IfNotPresent
     resources:
       requests:
@@ -19,7 +20,7 @@ spec:
         memory: 50Mi
     volumeMounts:
     - name: addons
-      mountPath: /etc/kubernetes/addons
+      mountPath: /etc/kubernetes/addons/init
       readOnly: true
     - name: msi
       mountPath: /var/lib/waagent/ManagedIdentity-Settings
@@ -27,7 +28,8 @@ spec:
   volumes:
   - name: addons
     hostPath:
-      path: /etc/kubernetes/addons
+      path: /etc/kubernetes/addons/init
   - name: msi
     hostPath:
       path: /var/lib/waagent/ManagedIdentity-Settings
+#EOF

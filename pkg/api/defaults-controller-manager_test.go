@@ -84,40 +84,13 @@ func TestControllerManagerConfigDefaultFeatureGates(t *testing.T) {
 	cs := CreateMockContainerService("testcluster", defaultTestClusterVer, 3, 2, false)
 	cs.setControllerManagerConfig()
 	cm := cs.Properties.OrchestratorProfile.KubernetesConfig.ControllerManagerConfig
-	if cm["--feature-gates"] != "" {
-		t.Fatalf("got unexpected '--feature-gates' Controller Manager config value for \"--feature-gates\": \"\": %s",
-			cm["--feature-gates"])
-	}
-
-	// test 1.9.0
-	cs = CreateMockContainerService("testcluster", "1.9.0", 3, 2, false)
-	cs.setControllerManagerConfig()
-	cm = cs.Properties.OrchestratorProfile.KubernetesConfig.ControllerManagerConfig
-	if cm["--feature-gates"] != "ServiceNodeExclusion=true" {
-		t.Fatalf("got unexpected '--feature-gates' Controller Manager config value for \"--feature-gates\": \"ServiceNodeExclusion=true\": %s",
-			cm["--feature-gates"])
-	}
-
-	// test 1.10.0
-	cs = CreateMockContainerService("testcluster", "1.10.0", 3, 2, false)
-	cs.setControllerManagerConfig()
-	cm = cs.Properties.OrchestratorProfile.KubernetesConfig.ControllerManagerConfig
-	if cm["--feature-gates"] != "LocalStorageCapacityIsolation=true,ServiceNodeExclusion=true" {
-		t.Fatalf("got unexpected '--feature-gates' Controller Manager config value for \"--feature-gates\": \"LocalStorageCapacityIsolation=true,ServiceNodeExclusion=true\": %s",
-			cm["--feature-gates"])
-	}
-
-	// test 1.14
-	cs = CreateMockContainerService("testcluster", "1.14.1", 3, 2, false)
-	cs.setControllerManagerConfig()
-	cm = cs.Properties.OrchestratorProfile.KubernetesConfig.ControllerManagerConfig
 	if cm["--feature-gates"] != "LocalStorageCapacityIsolation=true,ServiceNodeExclusion=true" {
 		t.Fatalf("got unexpected '--feature-gates' Controller Manager config value for \"--feature-gates\": \"LocalStorageCapacityIsolation=true,ServiceNodeExclusion=true\": %s",
 			cm["--feature-gates"])
 	}
 
 	// test user-overrides
-	cs = CreateMockContainerService("testcluster", "1.14.1", 3, 2, false)
+	cs = CreateMockContainerService("testcluster", defaultTestClusterVer, 3, 2, false)
 	cm = cs.Properties.OrchestratorProfile.KubernetesConfig.ControllerManagerConfig
 	cm["--feature-gates"] = "TaintBasedEvictions=true"
 	cs.setControllerManagerConfig()
@@ -137,5 +110,36 @@ func TestControllerManagerConfigHostedMasterProfile(t *testing.T) {
 	cm := cs.Properties.OrchestratorProfile.KubernetesConfig.ControllerManagerConfig
 	if cm["--cluster-name"] != "foodns" {
 		t.Fatalf("expected controller-manager to have cluster-name foodns when using HostedMasterProfile")
+	}
+}
+
+func TestControllerManagerDefaultConfig(t *testing.T) {
+	// Azure defaults
+	cs := CreateMockContainerService("testcluster", defaultTestClusterVer, 3, 2, false)
+	cs.setControllerManagerConfig()
+	cm := cs.Properties.OrchestratorProfile.KubernetesConfig.ControllerManagerConfig
+	if cm["--node-monitor-grace-period"] != string(DefaultKubernetesCtrlMgrNodeMonitorGracePeriod) {
+		t.Fatalf("expected controller-manager to have node-monitor-grace-period set to its default value")
+	}
+	if cm["--pod-eviction-timeout"] != string(DefaultKubernetesCtrlMgrPodEvictionTimeout) {
+		t.Fatalf("expected controller-manager to have pod-eviction-timeout set to its default value")
+	}
+	if cm["--route-reconciliation-period"] != string(DefaultKubernetesCtrlMgrRouteReconciliationPeriod) {
+		t.Fatalf("expected controller-manager to have route-reconciliation-period set to its default value")
+	}
+
+	// Azure Stack defaults
+	cs = CreateMockContainerService("testcluster", defaultTestClusterVer, 3, 2, false)
+	cs.Properties.CustomCloudProfile = &CustomCloudProfile{}
+	cs.setControllerManagerConfig()
+	cm = cs.Properties.OrchestratorProfile.KubernetesConfig.ControllerManagerConfig
+	if cm["--node-monitor-grace-period"] != string(DefaultAzureStackKubernetesCtrlMgrNodeMonitorGracePeriod) {
+		t.Fatalf("expected controller-manager to have node-monitor-grace-period set to its default value")
+	}
+	if cm["--pod-eviction-timeout"] != string(DefaultAzureStackKubernetesCtrlMgrPodEvictionTimeout) {
+		t.Fatalf("expected controller-manager to have pod-eviction-timeout set to its default value")
+	}
+	if cm["--route-reconciliation-period"] != string(DefaultAzureStackKubernetesCtrlMgrRouteReconciliationPeriod) {
+		t.Fatalf("expected controller-manager to have route-reconciliation-period set to its default value")
 	}
 }
