@@ -208,7 +208,7 @@ func (cs *ContainerService) setKubeletConfig(isUpgrade bool) {
 		}
 
 		removeKubeletFlags(cs.Properties.MasterProfile.KubernetesConfig.KubeletConfig, o.OrchestratorVersion)
-		if cs.Properties.AnyAgentIsLinux() {
+		if cs.Properties.AnyAgentIsLinux() || (cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.IsStandaloneKubelet != nil){
 			if val, ok := cs.Properties.MasterProfile.KubernetesConfig.KubeletConfig["--register-with-taints"]; !ok {
 				cs.Properties.MasterProfile.KubernetesConfig.KubeletConfig["--register-with-taints"] = common.MasterNodeTaint
 			} else {

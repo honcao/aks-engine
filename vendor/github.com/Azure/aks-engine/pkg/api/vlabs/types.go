@@ -438,10 +438,10 @@ type MasterProfile struct {
 	PlatformFaultDomainCount  *int              `json:"platformFaultDomainCount,omitempty"`
 	PlatformUpdateDomainCount *int              `json:"platformUpdateDomainCount"`
 	AuditDEnabled             *bool             `json:"auditDEnabled,omitempty"`
-	EncryptionAtHost          *bool             `json:"encryptionAtHost,omitempty"`
 	CustomVMTags              map[string]string `json:"customVMTags,omitempty"`
 	SysctlDConfig             map[string]string `json:"sysctldConfig,omitempty"`
 	UltraSSDEnabled           *bool             `json:"ultraSSDEnabled,omitempty"`
+	EncryptionAtHost          *bool             `json:"encryptionAtHost,omitempty"`
 
 	// subnet is internal
 	subnet string
