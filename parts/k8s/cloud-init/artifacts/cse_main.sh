@@ -266,7 +266,7 @@ rm -f /etc/apt/apt.conf.d/99periodic
 if [[ $OS == $UBUNTU_OS_NAME ]]; then
   time_metric "PurgeApt" apt_get_purge apache2-utils &
 fi
-retrycmd_if_failure 50 1 3 nc -vz ${API_SERVER_NAME} 443 || VALIDATION_ERR=$ERR_K8S_API_SERVER_CONN_FAIL
+retrycmd_if_failure 200 1 9 nc -vz ${API_SERVER_NAME} 443 || VALIDATION_ERR=$ERR_K8S_API_SERVER_CONN_FAIL
 {{end}}
 
 VALIDATION_ERR=0
@@ -289,7 +289,7 @@ else
     if [[ $API_SERVER_NAME == *.privatelink.* ]]; then
         API_SERVER_CONN_RETRIES=100
     fi
-    retrycmd ${API_SERVER_CONN_RETRIES} 1 3 nc -vz ${API_SERVER_NAME} 443 || VALIDATION_ERR={{GetCSEErrorCode "ERR_K8S_API_SERVER_CONN_FAIL"}}
+    retrycmd 200 1 9 nc -vz ${API_SERVER_NAME} 443 || VALIDATION_ERR={{GetCSEErrorCode "ERR_K8S_API_SERVER_CONN_FAIL"}}
 fi
 
 {{end}}
