@@ -15,7 +15,7 @@ metadata:
     k8s-app: kubernetes-dashboard
     addonmanager.kubernetes.io/mode: Reconcile
   name: kubernetes-dashboard
-  namespace: kubernetes-dashboard
+  namespace: kube-system
 
 ---
 
@@ -26,7 +26,7 @@ metadata:
     k8s-app: kubernetes-dashboard
     addonmanager.kubernetes.io/mode: Reconcile
   name: kubernetes-dashboard
-  namespace: kubernetes-dashboard
+  namespace: kube-system
 spec:
   ports:
     - port: 443
@@ -43,7 +43,7 @@ metadata:
     k8s-app: kubernetes-dashboard
     addonmanager.kubernetes.io/mode: EnsureExists
   name: kubernetes-dashboard-certs
-  namespace: kubernetes-dashboard
+  namespace: kube-system
 type: Opaque
 
 ---
@@ -55,7 +55,7 @@ metadata:
     k8s-app: kubernetes-dashboard
     addonmanager.kubernetes.io/mode: EnsureExists
   name: kubernetes-dashboard-csrf
-  namespace: kubernetes-dashboard
+  namespace: kube-system
 type: Opaque
 data:
   csrf: ""
@@ -69,7 +69,7 @@ metadata:
     k8s-app: kubernetes-dashboard
     addonmanager.kubernetes.io/mode: EnsureExists
   name: kubernetes-dashboard-key-holder
-  namespace: kubernetes-dashboard
+  namespace: kube-system
 type: Opaque
 
 ---
@@ -81,7 +81,7 @@ metadata:
     k8s-app: kubernetes-dashboard
     addonmanager.kubernetes.io/mode: EnsureExists
   name: kubernetes-dashboard-settings
-  namespace: kubernetes-dashboard
+  namespace: kube-system
 
 ---
 
@@ -92,7 +92,7 @@ metadata:
     k8s-app: kubernetes-dashboard
     addonmanager.kubernetes.io/mode: Reconcile
   name: kubernetes-dashboard
-  namespace: kubernetes-dashboard
+  namespace: kube-system
 rules:
   # Allow Dashboard to get, update and delete Dashboard exclusive secrets.
   - apiGroups: [""]
@@ -138,7 +138,7 @@ metadata:
     k8s-app: kubernetes-dashboard
     addonmanager.kubernetes.io/mode: Reconcile
   name: kubernetes-dashboard
-  namespace: kubernetes-dashboard
+  namespace: kube-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -146,7 +146,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: kubernetes-dashboard
-    namespace: kubernetes-dashboard
+    namespace: kube-system
 
 ---
 
@@ -163,7 +163,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: kubernetes-dashboard
-    namespace: kubernetes-dashboard
+    namespace: kube-system
 
 ---
 
@@ -174,7 +174,7 @@ metadata:
     k8s-app: kubernetes-dashboard
     addonmanager.kubernetes.io/mode: Reconcile
   name: kubernetes-dashboard
-  namespace: kubernetes-dashboard
+  namespace: kube-system
 spec:
   replicas: 1
   revisionHistoryLimit: 10
@@ -195,7 +195,7 @@ spec:
               protocol: TCP
           args:
             - --auto-generate-certificates
-            - --namespace=kubernetes-dashboard
+            - --namespace=kube-system
             # Uncomment the following line to manually specify Kubernetes API server Host
             # If not specified, Dashboard will attempt to auto discover the API server and connect
             # to it. Uncomment only if the default does not work.
@@ -233,11 +233,12 @@ spec:
           emptyDir: {}
       serviceAccountName: kubernetes-dashboard
       nodeSelector:
-        "kubernetes.io/os": linux
+        "beta.kubernetes.io/os": linux
       # Comment the following tolerations if Dashboard must not be deployed on master
       tolerations:
-        - key: node-role.kubernetes.io/master
-          effect: NoSchedule
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+        effect: "NoSchedule"
 
 ---
 
@@ -248,7 +249,7 @@ metadata:
     k8s-app: dashboard-metrics-scraper
     addonmanager.kubernetes.io/mode: Reconcile
   name: dashboard-metrics-scraper
-  namespace: kubernetes-dashboard
+  namespace: kube-system
 spec:
   ports:
     - port: 8000
@@ -265,7 +266,7 @@ metadata:
     k8s-app: dashboard-metrics-scraper
     addonmanager.kubernetes.io/mode: Reconcile
   name: dashboard-metrics-scraper
-  namespace: kubernetes-dashboard
+  namespace: kube-system
 spec:
   replicas: 1
   revisionHistoryLimit: 10
@@ -309,11 +310,12 @@ spec:
             runAsGroup: 2001
       serviceAccountName: kubernetes-dashboard
       nodeSelector:
-        "kubernetes.io/os": linux
+        "beta.kubernetes.io/os": linux
       # Comment the following tolerations if Dashboard must not be deployed on master
       tolerations:
-        - key: node-role.kubernetes.io/master
-          effect: NoSchedule
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+        effect: "NoSchedule"
       volumes:
         - name: tmp-volume
           emptyDir: {}
